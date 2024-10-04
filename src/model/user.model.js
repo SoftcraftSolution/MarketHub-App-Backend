@@ -7,10 +7,17 @@ const registrationSchema = new mongoose.Schema({
         required: true,
         trim: true
     },
-    phoneNumber: {
+    email: {
         type: String,
         required: true,
-        match: [/^\+?[1-9]\d{1,14}$/, 'Please enter a valid phone number']
+
+    },
+    whatsappNumber: {
+        type: String
+    },
+    phoneNumber: {
+        type: String,
+
     },
     pincode: {
         type: String,
@@ -19,13 +26,14 @@ const registrationSchema = new mongoose.Schema({
     },
     city: {
         type: String,
-        required: true,
-        trim: true
+
     },
     state: {
         type: String,
-        required: true,
-        trim: true
+
+    },
+    country:{
+        type:String
     },
     visitingCard: {
         type: String, // URL or path to the uploaded file
@@ -48,14 +56,14 @@ const registrationSchema = new mongoose.Schema({
         type: String,
         enum: [
             'freeTrail',
-            'extendedfreeTrial', 
-            'rejected', 
-            'expiredFreeTrial', 
-            'basicPlan', 
-            'expiredBasicPlan', 
-            'standardPlan', 
-            'expiredStandardPlan', 
-            'premiumPlan', 
+            'extendedfreeTrial',
+            'rejected',
+            'expiredFreeTrial',
+            'basicPlan',
+            'expiredBasicPlan',
+            'standardPlan',
+            'expiredStandardPlan',
+            'premiumPlan',
             'expiredPremiumPlan'
         ] // Corrected enum values as strings
     }

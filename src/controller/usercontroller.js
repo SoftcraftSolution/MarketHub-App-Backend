@@ -1,37 +1,53 @@
 const Registration = require('../model/user.model');
 const cloudinary = require('cloudinary').v2;
 const fetch = require('node-fetch'); // Ensure you have node-fetch installed
-const FAST2SMS_API_KEY = process.env.FAST2SMS_API_KEY;
+const axios = require('axios');
 const response = require('../middleware/response')
+const crypto = require('crypto');
+const nodemailer = require('nodemailer');
+require('dotenv').config();
+const ResetCode = require('../model/resetcode.models'); 
 
 // Generate a random OTP
 const generateOTP = () => {
-    return Math.floor(1000 + Math.random() * 9000); // Generate a random number between 1000 and 9999
+    return Math.floor(1000 + Math.random() * 9000); // Generates a 4-digit OTP
 };
 
-// Function to send OTP via SMS using FAST2SMS
-// Function to send OTP via SMS using FAST2SMS
-const sendOTP = async (phoneNumber, otp) => {
+// Configure nodemailer for sending emails
+const transporter = nodemailer.createTransport({
+    service: 'gmail', // You can change this to your email provider
+    auth: {
+        user: process.env.EMAIL_USERNAME, // Your email account
+        pass: process.env.EMAIL_PASSWORD, // Your email account's password
+    },
+});
+
+// Function to get city and state by pin code
+const getCityAndStateByPinCode = async (pincode) => {
     try {
-        const response = await fetch(`https://www.fast2sms.com/dev/bulkV2?authorization=${FAST2SMS_API_KEY}&sender_id=FSTSMS&message=Your OTP is ${otp}&language=english&route=p&numbers=${phoneNumber}`, {
-            method: 'GET', // Adjust if necessary
-        });
+        const response = await axios.get(`https://api.postalpincode.in/pincode/${pincode}`);
+        console.log('API Response:', response.data); // Log the entire API response
 
-        const data = await response.json();
+        const data = response.data[0];
 
-        // Log the response from Fast2SMS
-        console.log("Response from Fast2SMS:", data);
+        if (data.Status === "Success") {
+            const postOffice = data.PostOffice[0];
+            console.log('City:', postOffice.District);
+            console.log('State:', postOffice.State);
+            console.log('Country',postOffice.Country);
 
-        if (data.return === true) {
-            console.log(`OTP sent successfully to ${phoneNumber}`);
+            return {
+                city: postOffice.District,
+                state: postOffice.State,
+                country:postOffice.Country
+            };
         } else {
-            console.error(`Failed to send OTP to ${phoneNumber}: ${data.message}`);
+            console.log('API Status:', data.Status); // Log the API status if it's not "Success"
+            throw new Error('Invalid Pincode');
         }
-
-        return data;
     } catch (error) {
-        console.error("Error sending OTP:", error);
-        throw new Error('Failed to send OTP');
+        console.error('Error occurred while fetching city and state:', error.message);
+        throw new Error('Error fetching city and state information');
     }
 };
 
@@ -39,37 +55,57 @@ const sendOTP = async (phoneNumber, otp) => {
 // Create a new registration
 exports.createRegistration = async (req, res) => {
     try {
-        // Extract phoneNumber from request body
-        const { phoneNumber } = req.body;
+        // Extract necessary fields from request body
+        const { fullName, email, whatsappNumber, phoneNumber, pincode } = req.body;
 
-        // Generate OTP
+        // Fetch city and state based on the pin code
+        const { city, state ,country} = await getCityAndStateByPinCode(pincode);
+
+        // Generate the 4-digit OTP (registration code)
         const otp = generateOTP();
 
         // Create a new registration document
         const newRegistration = new Registration({
-            ...req.body,
-            visitingCard: req.file ? req.file.path : null, // Handle visiting card upload
-            otp: otp // Store the OTP
+            fullName: fullName,
+            email: email,
+            phoneNumber: phoneNumber,
+            whatsappNumber: whatsappNumber,
+            pincode: pincode,
+            city: city, // Save city from pin code API
+            state: state,
+            country:country, // Save state from pin code API
+            visitingCard: req.file ? req.file.path : null, // Handle visiting card upload if exists
+            otp: otp, // Save generated 4-digit OTP as registration code
         });
 
-        // Save the registration document
+        // Save the registration document in the database
         await newRegistration.save();
 
-        // Send OTP to the provided phone number
-        await sendOTP(phoneNumber, otp); // Use phoneNumber from request body
-        console.log(`Generated OTP for ${phoneNumber}: ${otp}`);
+        // Send the 4-digit registration code to the user's email
+        const mailOptions = {
+            from: process.env.EMAIL_USERNAME, // Sender address
+            to: email, // Recipient's email
+            subject: 'Your Registration Code',
+            text: `Hello ${fullName},\n\nYour registration code is: ${otp}\n\nPlease verify using this code.`,
+        };
 
-        // Respond with the new registration and a success message
+        await transporter.sendMail(mailOptions);
+        console.log(`Registration code sent to ${email}: ${otp}`);
+
+        // Respond with the new registration and success message
         res.status(201).json({
-            message: 'Registration successful. OTP sent.',
+            message: 'Registration successful. Code sent to email. Please verify.',
             registration: newRegistration,
-            otp: otp // Optionally include the OTP in the response
         });
     } catch (error) {
         console.error(error); // Log the error for debugging
         res.status(400).json({ message: error.message });
     }
 };
+
+
+
+
 
 exports.verifyOTP = async (req, res) => {
     try {
