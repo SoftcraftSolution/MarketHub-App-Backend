@@ -13,10 +13,12 @@ const registrationSchema = new mongoose.Schema({
 
     },
     whatsappNumber: {
-        type: String
+        type: String,
+        required:true
     },
     phoneNumber: {
         type: String,
+        required: true
 
     },
     pincode: {
