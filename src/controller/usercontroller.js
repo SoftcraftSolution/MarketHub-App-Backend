@@ -96,18 +96,26 @@ exports.createRegistration = async (req, res) => {
 
 exports.verifyEmail = async (req, res) => {
     try {
-        const { email } = req.body;
+        const { email, verifyUser } = req.body; // Extracting verifyUser flag from the request body
 
-        // Find the user by email
-        const user = await Registration.findOne({ email });
-        if (!user) {
-            return res.status(404).json({ error: 'User not found' });
+        // If verifyUser is true, find the user by email
+        let user;
+        if (verifyUser) {
+            user = await Registration.findOne({ email });
+            if (!user) {
+                return res.status(404).json({ error: 'User not found' });
+            }
+        } else {
+            // If not verifying, set a default user object (optional)
+            user = { email }; // Create a temporary user object with the email
         }
 
         // Generate OTP and update the user in the database
         const otp = generateOTP();
-        user.otp = otp;
-        await user.save(); // Save the OTP to the user's document
+        if (verifyUser) {
+            user.otp = otp;
+            await user.save(); // Save the OTP to the user's document only if verifying
+        }
 
         console.log(`OTP generated for email: ${email} - OTP: ${otp}`);
 
@@ -124,11 +132,11 @@ exports.verifyEmail = async (req, res) => {
 
         console.log(`OTP sent to email: ${email}`);
 
-        // Respond with user details and OTP
+        // Respond with user details and OTP (optional for debugging)
         res.status(200).json({
             message: 'OTP sent successfully to email',
             user,
-            otp // Sending OTP (optional for debugging; you can remove it in production)
+            otp // You may want to remove this in production for security reasons
         });
 
     } catch (error) {
@@ -136,6 +144,7 @@ exports.verifyEmail = async (req, res) => {
         return res.status(500).json({ error: 'Failed to send OTP' });
     }
 };
+
 exports.createPin = async (req, res) => {
     try {
         const { phoneNumber, pin } = req.body;
