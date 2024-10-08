@@ -281,3 +281,25 @@ exports.updatePin = async (req, res) => {
         return res.status(500).json({ error: 'Failed to update PIN' });
     }
 };
+ // Assuming you have a User model defined
+
+exports.userList = async (req, res) => {
+  try {
+    // Fetch all users from the database
+    const users = await Registration.find();
+    
+    // Send the user list as a response
+    res.status(200).json({
+      success: true,
+      message:'UserList fetched Successfully',
+      data: users,
+    });
+  } catch (error) {
+    // Handle any errors that occur during fetching
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching user list',
+      error: error.message,
+    });
+  }
+};

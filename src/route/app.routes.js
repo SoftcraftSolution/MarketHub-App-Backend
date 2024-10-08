@@ -10,6 +10,7 @@ router.post('/forgot-pin',userController.forgotPinRequest)
 router.post('/reset-pin',userController.resetPin)
 router.post('/change-pin',userController.changePin)
 router.post('/update-pin',userController.updatePin)
+router.get('/get-user-list',userController.userList)
 
 
 module.exports = router;
