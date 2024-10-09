@@ -60,6 +60,12 @@ exports.createRegistration = async (req, res) => {
 
         // Fetch city and state based on the pin code
         const { city, state, country } = await getCityAndStateByPinCode(pincode);
+
+        // Calculate plan start and end dates
+        const planStartDate = new Date(); // Current date (plan starts at registration time)
+        const planEndDate = new Date();
+        planEndDate.setDate(planStartDate.getDate() + 7); // Plan ends 7 days after the start
+
         // Create a new registration document
         const newRegistration = new Registration({
             fullName: fullName,
@@ -73,13 +79,14 @@ exports.createRegistration = async (req, res) => {
             state: state,
             country: country, // Save state from pin code API
             visitingCard: req.file ? req.file.path : null, // Handle visiting card upload if exists
-            // Save generated 4-digit OTP as registration code
+            planStartDate: planStartDate, // Save the plan start date
+            planEndDate: planEndDate, // Save the plan end date
         });
 
         // Save the registration document in the database
         await newRegistration.save();
 
-
+        // Send a success response with the registration details
         res.status(201).json({
             message: 'Registration successful',
             registration: newRegistration,
@@ -89,6 +96,7 @@ exports.createRegistration = async (req, res) => {
         res.status(400).json({ message: error.message });
     }
 };
+
 
 
 
@@ -283,23 +291,134 @@ exports.updatePin = async (req, res) => {
 };
  // Assuming you have a User model defined
 
-exports.userList = async (req, res) => {
-  try {
-    // Fetch all users from the database
-    const users = await Registration.find();
+ exports.userList = async (req, res) => {
+    try {
+      // Destructure query parameters for searching and sorting
+      const { name, phoneNumber, sortBy = 'createdAt', sortOrder = 'desc' } = req.query; // Default to 'desc' for recent first
+  
+      // Build the search query
+      const searchQuery = {};
+      if (name) {
+        searchQuery.name = { $regex: name, $options: 'i' }; // Case-insensitive search
+      }
+      
+      // Normalize phoneNumber for searching
+      if (phoneNumber) {
+        const normalizedPhoneNumber = phoneNumber.replace(/[^\d]/g, ''); // Remove non-digit characters
+        searchQuery.phoneNumber = { $regex: normalizedPhoneNumber, $options: 'i' }; // Case-insensitive search
+      }
+  
+      // Determine sort order
+      const sortOptions = {};
+      sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1; // Ascending or descending
+  
+      // Fetch users based on the search query and sorting options
+      const users = await Registration.find(searchQuery).sort(sortOptions);
+      
+      // Send the user list as a response
+      res.status(200).json({
+        success: true,
+        message: 'User list fetched successfully',
+        data: users,
+      });
+    } catch (error) {
+      // Handle any errors that occur during fetching
+      res.status(500).json({
+        success: false,
+        message: 'Error fetching user list',
+        error: error.message,
+      });
+    }
+  };
+  exports.freeTrialUsers = async (req, res) => {
+    try {
+      // Fetch all users who are in free trial
+      const freeTrialUsers = await Registration.find({ isInTrail: true });
+  
+      // Check if any free trial users were found
+      if (!freeTrialUsers || freeTrialUsers.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: 'No free trial users found',
+        });
+      }
+  
+      // Respond with the list of free trial users
+      res.status(200).json({
+        success: true,
+        message: 'Free trial user list fetched successfully',
+        data: freeTrialUsers,
+      });
+    } catch (error) {
+      // Handle any errors during the query
+      res.status(500).json({
+        success: false,
+        message: 'Error fetching free trial user list',
+        error: error.message,
+      });
+    }
+  };
+  
+  exports.expiredTrailUsers = async (req, res) => {
+    try {
+      // Get the current date
+      const currentDate = new Date();
+  
+      // Fetch all users whose plan has expired
+      const expiredUsers = await Registration.find({
+        planEndDate: { $lt: currentDate }
+      });
+  
+      // Check if any expired users were found
+      if (!expiredUsers || expiredUsers.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: 'No expired users found',
+        });
+      }
+  
+      // Respond with the list of expired users
+      res.status(200).json({
+        success: true,
+        message: 'Expired user list fetched successfully',
+        data: expiredUsers,
+      });
+    } catch (error) {
+      // Handle any errors during the query
+      res.status(500).json({
+        success: false,
+        message: 'Error fetching expired user list',
+        error: error.message,
+      });
+    }
+  };
+  exports.freeUsers=async(req,res)=>{
+    try {
+        // Fetch all users who are in free trial
+        const freeUsers = await Registration.find({ isFreeUser: true });
     
-    // Send the user list as a response
-    res.status(200).json({
-      success: true,
-      message:'UserList fetched Successfully',
-      data: users,
-    });
-  } catch (error) {
-    // Handle any errors that occur during fetching
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching user list',
-      error: error.message,
-    });
-  }
-};
+        // Check if any free trial users were found
+        if (!freeUsers || freeUsers.length === 0) {
+          return res.status(200).json({
+            success: false,
+            message: 'No free trial users found',
+          });
+        }
+    
+        // Respond with the list of free trial users
+        res.status(200).json({
+          success: true,
+          message: 'Free trial user list fetched successfully',
+          data: freeUsers,
+        });
+      } catch (error) {
+        // Handle any errors during the query
+        res.status(500).json({
+          success: false,
+          message: 'Error fetching free trial user list',
+          error: error.message,
+        });
+      }
+    };
+  
+  

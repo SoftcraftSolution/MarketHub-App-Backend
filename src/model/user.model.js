@@ -42,6 +42,7 @@ const registrationSchema = new mongoose.Schema({
     },
     otp: {
         type: String,
+        expires: 86400
     },
     pin: {
         type: Number,
@@ -52,22 +53,32 @@ const registrationSchema = new mongoose.Schema({
     },
     planName: {
         type: String,
-        enum: ['freeTrial', 'standard', 'premium', 'basic'],
+        enum: [ 'standard', 'premium', 'basic'],
     },
-    status: {
-        type: String,
-        enum: [
-            'freeTrail',
-            'extendedfreeTrial',
-            'rejected',
-            'expiredFreeTrial',
-            'basicPlan',
-            'expiredBasicPlan',
-            'standardPlan',
-            'expiredStandardPlan',
-            'premiumPlan',
-            'expiredPremiumPlan'
-        ] // Corrected enum values as strings
+    extendendDays:{
+        type:Number,
+        default:0
+    },
+    isRejected:{
+        type:Boolean,
+        default:false
+    },
+    rejectionDate:{
+        type:Date
+    },
+    isInTrail:{
+        type:Boolean,
+        default:true
+    },
+    isFreeUser:{
+        type:Boolean,
+        default:false
+    },
+    planStartDate:{
+        type:Date
+    },
+    planEndDate:{
+    type:Date
     }
 }, { timestamps: true });
 

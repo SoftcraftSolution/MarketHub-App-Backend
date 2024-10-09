@@ -11,6 +11,10 @@ router.post('/reset-pin',userController.resetPin)
 router.post('/change-pin',userController.changePin)
 router.post('/update-pin',userController.updatePin)
 router.get('/get-user-list',userController.userList)
+router.get('/free-trail-user-list',userController.freeTrialUsers)
+router.get('/expired-trail-user-list',userController.expiredTrailUsers)
+router.get('/free-user-list',userController.freeUsers)
+
 //logi
 
 module.exports = router;
