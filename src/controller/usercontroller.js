@@ -549,7 +549,7 @@ exports.updatePin = async (req, res) => {
   };
   exports.rejectUser = async (req, res) => {
     try {
-      const { userId } = req.query; // Assuming user ID is sent in the request body
+      const { userId, isRejected } = req.body; // Assuming user ID and isRejected status are sent in the request body
   
       // Validate the user ID
       if (!userId) {
@@ -559,12 +559,12 @@ exports.updatePin = async (req, res) => {
         });
       }
   
-      // Update the user status to rejected
+    
       const updatedUser = await Registration.findByIdAndUpdate(
         userId,
         {
-          isRejected: true,
-          rejectionDate: new Date(), // Set current date as rejection date
+          isRejected: isRejected, // Set the isRejected status based on request
+          rejectionDate: isRejected ? new Date() : null, // Set current date if rejected
         },
         { new: true } // Return the updated document
       );
@@ -580,7 +580,7 @@ exports.updatePin = async (req, res) => {
       // Respond with the updated user information
       res.status(200).json({
         success: true,
-        message: 'User rejected successfully.',
+        message: isRejected ? 'User rejected successfully.' : 'User status updated successfully.',
         data: updatedUser,
       });
     } catch (error) {
@@ -592,6 +592,7 @@ exports.updatePin = async (req, res) => {
       });
     }
   };
+  
   
   exports.rejectedUsers = async (req, res) => {
     try {
