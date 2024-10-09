@@ -16,6 +16,7 @@ router.get('/expired-trail-user-list',userController.expiredTrailUsers)
 router.get('/free-user-list',userController.freeUsers)
 router.get('/reject-user',userController.rejectUser)
 router.get("/rejected-user-list",userController.rejectedUsers)
+router.get("/user-approve",userController.userApproved)
 
 //logi
 

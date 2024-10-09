@@ -7,6 +7,7 @@ const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 require('dotenv').config();
 const ResetCode = require('../model/resetcode.models');
+const moment = require('moment-timezone');
 
 // Generate a random OTP
 const generateOTP = () => {
@@ -664,4 +665,71 @@ exports.updatePin = async (req, res) => {
       });
     }
   };
+  exports.userApproved = async (req, res) => {
+    try {
+      const { email, isApproved } = req.body;
+  
+      if (!email) {
+        return res.status(400).json({
+          success: false,
+          message: 'Email is required.',
+        });
+      }
+  
+   
+      let updateFields = {
+        isApproved: isApproved,
+      };
+  
+      if (isApproved) {
+        // Get the current date and time in IST
+        const planStartDate = moment.tz("Asia/Kolkata"); // Current time in IST
+        const planEndDate = moment(planStartDate).add(7, 'days'); // Add 7 days
+  
+        updateFields.planStartDate = planStartDate.toDate(); // Convert to JavaScript Date object
+        updateFields.planEndDate = planEndDate.toDate(); // Convert to JavaScript Date object
+        updateFields.approvedAt = planStartDate.toDate(); // Set approvedAt to the same timestamp
+      }
+  
+      const updatedUser = await Registration.findOneAndUpdate(
+        { email: email },
+        updateFields,
+        { new: true }
+      );
+  
+      if (!updatedUser) {
+        return res.status(404).json({
+          success: false,
+          message: 'User not found.',
+        });
+      }
+  
+      // Format dates to IST for the response
+      const formattedPlanStartDate = moment.tz(updatedUser.planStartDate, "Asia/Kolkata").format();
+      const formattedPlanEndDate = moment.tz(updatedUser.planEndDate, "Asia/Kolkata").format();
+      
+      // Log for debugging
+      console.log('Plan Start Date:', formattedPlanStartDate);
+  
+      res.status(200).json({
+        success: true,
+        message: isApproved ? 'User approved successfully.' : 'User status updated successfully.',
+        data: {
+          ...updatedUser.toObject(),
+          planStartDate: formattedPlanStartDate, // Send formatted date
+          planEndDate: formattedPlanEndDate, // Send formatted date
+        },
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: 'Error approving user.',
+        error: error.message,
+      });
+    }
+  };
+  
+  
+  
+  
   
