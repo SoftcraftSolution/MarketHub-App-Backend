@@ -62,9 +62,7 @@ exports.createRegistration = async (req, res) => {
         const { city, state, country } = await getCityAndStateByPinCode(pincode);
 
         // Calculate plan start and end dates
-        const planStartDate = new Date(); // Current date (plan starts at registration time)
-        const planEndDate = new Date();
-        planEndDate.setDate(planStartDate.getDate() + 7); // Plan ends 7 days after the start
+    // Plan ends 7 days after the start
 
         // Create a new registration document
         const newRegistration = new Registration({
@@ -79,8 +77,7 @@ exports.createRegistration = async (req, res) => {
             state: state,
             country: country, // Save state from pin code API
             visitingCard: req.file ? req.file.path : null, // Handle visiting card upload if exists
-            planStartDate: planStartDate, // Save the plan start date
-            planEndDate: planEndDate, // Save the plan end date
+           // Save the plan end date
         });
 
         // Save the registration document in the database
