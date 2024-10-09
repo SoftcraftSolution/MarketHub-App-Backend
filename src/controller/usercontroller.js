@@ -294,12 +294,12 @@ exports.updatePin = async (req, res) => {
  exports.userList = async (req, res) => {
     try {
       // Destructure query parameters for searching and sorting
-      const { name, phoneNumber, sortBy = 'createdAt', sortOrder = 'desc' } = req.query; // Default to 'desc' for recent first
+      const {fullName, phoneNumber, sortBy = 'createdAt', sortOrder = 'desc' } = req.query; // Default to 'desc' for recent first
   
       // Build the search query
       const searchQuery = {};
-      if (name) {
-        searchQuery.name = { $regex: name, $options: 'i' }; // Case-insensitive search
+      if (fullName) {
+        searchQuery.fullName = { $regex:fullName, $options: 'i' }; // Case-insensitive search
       }
       
       // Normalize phoneNumber for searching
@@ -332,8 +332,37 @@ exports.updatePin = async (req, res) => {
   };
   exports.freeTrialUsers = async (req, res) => {
     try {
-      // Fetch all users who are in free trial
-      const freeTrialUsers = await Registration.find({ isInTrail: true });
+      const {
+        fullName,
+        phoneNumber,
+        sortBy = 'createdAt',
+        sortOrder = 'desc',
+        page = 1,
+        limit = 10
+      } = req.query; // Default to 'desc' for recent first and page 1 with 10 items per page
+  
+      // Build the search query
+      const searchQuery = { isInTrail: true }; // Only look for free trial users
+      if (fullName) {
+        searchQuery.fullName = { $regex: fullName, $options: 'i' }; // Case-insensitive search
+      }
+  
+      // Normalize phoneNumber for searching
+      if (phoneNumber) {
+        const normalizedPhoneNumber = phoneNumber.replace(/[^\d]/g, ''); // Remove non-digit characters
+        searchQuery.phoneNumber = { $regex: normalizedPhoneNumber, $options: 'i' }; // Case-insensitive search
+      }
+  
+      // Determine sort order
+      const sortOptions = {};
+      sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1; // Ascending or descending
+  
+      // Fetch users based on the search query and sorting options with pagination
+      const skip = (page - 1) * limit; // Calculate how many documents to skip
+      const freeTrialUsers = await Registration.find(searchQuery)
+        .sort(sortOptions)
+        .skip(skip)
+        .limit(Number(limit)); // Limit to the specified number of users
   
       // Check if any free trial users were found
       if (!freeTrialUsers || freeTrialUsers.length === 0) {
@@ -343,11 +372,20 @@ exports.updatePin = async (req, res) => {
         });
       }
   
-      // Respond with the list of free trial users
+      // Get the total count of free trial users for pagination
+      const totalCount = await Registration.countDocuments(searchQuery);
+  
+      // Respond with the list of free trial users and pagination info
       res.status(200).json({
         success: true,
         message: 'Free trial user list fetched successfully',
         data: freeTrialUsers,
+        pagination: {
+          total: totalCount,
+          page: Number(page),
+          limit: Number(limit),
+          totalPages: Math.ceil(totalCount / limit),
+        },
       });
     } catch (error) {
       // Handle any errors during the query
@@ -359,15 +397,49 @@ exports.updatePin = async (req, res) => {
     }
   };
   
+  
   exports.expiredTrailUsers = async (req, res) => {
     try {
       // Get the current date
       const currentDate = new Date();
   
-      // Fetch all users whose plan has expired
-      const expiredUsers = await Registration.find({
-        planEndDate: { $lt: currentDate }
-      });
+      // Destructure query parameters for searching and pagination
+      const {
+        fullName,
+        phoneNumber,
+        sortBy = 'planEndDate',
+        sortOrder = 'desc',
+        page = 1,
+        limit = 10
+      } = req.query; // Default to 'desc' for recent first and page 1 with 10 items per page
+  
+      // Build the search query
+      const searchQuery = {
+        planEndDate: { $lt: currentDate } // Only look for expired users
+      };
+  
+      if (fullName) {
+        searchQuery.fullName = { $regex: fullName, $options: 'i' }; // Case-insensitive search
+      }
+  
+      // Normalize phoneNumber for searching
+      if (phoneNumber) {
+        const normalizedPhoneNumber = phoneNumber.replace(/[^\d]/g, ''); // Remove non-digit characters
+        searchQuery.phoneNumber = { $regex: normalizedPhoneNumber, $options: 'i' }; // Case-insensitive search
+      }
+  
+      // Determine sort order
+      const sortOptions = {};
+      sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1; // Ascending or descending
+  
+      // Calculate how many documents to skip for pagination
+      const skip = (page - 1) * limit;
+  
+      // Fetch expired users based on the search query and sorting options with pagination
+      const expiredUsers = await Registration.find(searchQuery)
+        .sort(sortOptions)
+        .skip(skip)
+        .limit(Number(limit)); // Limit to the specified number of users
   
       // Check if any expired users were found
       if (!expiredUsers || expiredUsers.length === 0) {
@@ -377,11 +449,20 @@ exports.updatePin = async (req, res) => {
         });
       }
   
-      // Respond with the list of expired users
+      // Get the total count of expired users for pagination
+      const totalCount = await Registration.countDocuments(searchQuery);
+  
+      // Respond with the list of expired users and pagination info
       res.status(200).json({
         success: true,
         message: 'Expired user list fetched successfully',
         data: expiredUsers,
+        pagination: {
+          total: totalCount,
+          page: Number(page),
+          limit: Number(limit),
+          totalPages: Math.ceil(totalCount / limit),
+        },
       });
     } catch (error) {
       // Handle any errors during the query
@@ -392,33 +473,80 @@ exports.updatePin = async (req, res) => {
       });
     }
   };
-  exports.freeUsers=async(req,res)=>{
+  
+  exports.freeUsers = async (req, res) => {
     try {
-        // Fetch all users who are in free trial
-        const freeUsers = await Registration.find({ isFreeUser: true });
-    
-        // Check if any free trial users were found
-        if (!freeUsers || freeUsers.length === 0) {
-          return res.status(200).json({
-            success: false,
-            message: 'No free trial users found',
-          });
-        }
-    
-        // Respond with the list of free trial users
-        res.status(200).json({
-          success: true,
-          message: 'Free trial user list fetched successfully',
-          data: freeUsers,
-        });
-      } catch (error) {
-        // Handle any errors during the query
-        res.status(500).json({
+      // Destructure query parameters for searching and pagination
+      const {
+        fullName,
+        phoneNumber,
+        sortBy = 'createdAt', // Default sort field
+        sortOrder = 'desc', // Default sort order
+        page = 1, // Default to page 1
+        limit = 10 // Default to 10 users per page
+      } = req.query;
+  
+      // Build the search query
+      const searchQuery = {
+        isFreeUser: true // Only look for free users
+      };
+  
+      // Case-insensitive search for fullName
+      if (fullName) {
+        searchQuery.fullName = { $regex: fullName, $options: 'i' }; // Case-insensitive search
+      }
+  
+      // Normalize phoneNumber for searching
+      if (phoneNumber) {
+        const normalizedPhoneNumber = phoneNumber.replace(/[^\d]/g, ''); // Remove non-digit characters
+        searchQuery.phoneNumber = { $regex: normalizedPhoneNumber, $options: 'i' }; // Case-insensitive search
+      }
+  
+      // Determine sort order
+      const sortOptions = {};
+      sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1; // Ascending or descending
+  
+      // Calculate how many documents to skip for pagination
+      const skip = (page - 1) * limit;
+  
+      // Fetch free users based on the search query and sorting options with pagination
+      const freeUsers = await Registration.find(searchQuery)
+        .sort(sortOptions)
+        .skip(skip)
+        .limit(Number(limit)); // Limit to the specified number of users
+  
+      // Check if any free users were found
+      if (!freeUsers || freeUsers.length === 0) {
+        return res.status(200).json({
           success: false,
-          message: 'Error fetching free trial user list',
-          error: error.message,
+          message: 'No free trial users found',
         });
       }
-    };
+  
+      // Get the total count of free users for pagination
+      const totalCount = await Registration.countDocuments(searchQuery);
+  
+      // Respond with the list of free users and pagination info
+      res.status(200).json({
+        success: true,
+        message: 'Free user list fetched successfully',
+        data: freeUsers,
+        pagination: {
+          total: totalCount,
+          page: Number(page),
+          limit: Number(limit),
+          totalPages: Math.ceil(totalCount / limit),
+        },
+      });
+    } catch (error) {
+      // Handle any errors during the query
+      res.status(500).json({
+        success: false,
+        message: 'Error fetching free user list',
+        error: error.message,
+      });
+    }
+  };
+  
   
   
