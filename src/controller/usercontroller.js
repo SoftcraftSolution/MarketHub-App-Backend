@@ -519,7 +519,7 @@ exports.updatePin = async (req, res) => {
       if (!freeUsers || freeUsers.length === 0) {
         return res.status(200).json({
           success: false,
-          message: 'No free trial users found',
+          message: 'No free users found',
         });
       }
   
@@ -547,6 +547,123 @@ exports.updatePin = async (req, res) => {
       });
     }
   };
+  exports.rejectUser = async (req, res) => {
+    try {
+      const { userId } = req.query; // Assuming user ID is sent in the request body
   
+      // Validate the user ID
+      if (!userId) {
+        return res.status(400).json({
+          success: false,
+          message: 'User ID is required.',
+        });
+      }
   
+      // Update the user status to rejected
+      const updatedUser = await Registration.findByIdAndUpdate(
+        userId,
+        {
+          isRejected: true,
+          rejectionDate: new Date(), // Set current date as rejection date
+        },
+        { new: true } // Return the updated document
+      );
+  
+      // Check if the user was found and updated
+      if (!updatedUser) {
+        return res.status(404).json({
+          success: false,
+          message: 'User not found.',
+        });
+      }
+  
+      // Respond with the updated user information
+      res.status(200).json({
+        success: true,
+        message: 'User rejected successfully.',
+        data: updatedUser,
+      });
+    } catch (error) {
+      // Handle any errors during the update
+      res.status(500).json({
+        success: false,
+        message: 'Error rejecting user.',
+        error: error.message,
+      });
+    }
+  };
+  
+  exports.rejectedUsers = async (req, res) => {
+    try {
+      // Destructure query parameters for searching and pagination
+      const {
+        fullName,
+        phoneNumber,
+        sortBy = 'createdAt', // Default sort field
+        sortOrder = 'desc', // Default sort order
+        page = 1, // Default to page 1
+        limit = 10 // Default to 10 users per page
+      } = req.query;
+  
+      // Build the search query
+      const searchQuery = {
+        isRejected: true // Only look for rejected users
+      };
+  
+      // Case-insensitive search for fullName
+      if (fullName) {
+        searchQuery.fullName = { $regex: fullName, $options: 'i' }; // Case-insensitive search
+      }
+  
+      // Normalize phoneNumber for searching
+      if (phoneNumber) {
+        const normalizedPhoneNumber = phoneNumber.replace(/[^\d]/g, ''); // Remove non-digit characters
+        searchQuery.phoneNumber = { $regex: normalizedPhoneNumber, $options: 'i' }; // Case-insensitive search
+      }
+  
+      // Determine sort order
+      const sortOptions = {};
+      sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1; // Ascending or descending
+  
+      // Calculate how many documents to skip for pagination
+      const skip = (page - 1) * limit;
+  
+      // Fetch rejected users based on the search query and sorting options with pagination
+      const rejectedUsers = await Registration.find(searchQuery)
+        .sort(sortOptions)
+        .skip(skip)
+        .limit(Number(limit)); // Limit to the specified number of users
+  
+      // Check if any rejected users were found
+      if (!rejectedUsers || rejectedUsers.length === 0) {
+        return res.status(200).json({
+          success: false,
+          message: 'No rejected users found',
+        });
+      }
+  
+      // Get the total count of rejected users for pagination
+      const totalCount = await Registration.countDocuments(searchQuery);
+  
+      // Respond with the list of rejected users and pagination info
+      res.status(200).json({
+        success: true,
+        message: 'Rejected user list fetched successfully',
+        data: rejectedUsers,
+        pagination: {
+          total: totalCount,
+          page: Number(page),
+          limit: Number(limit),
+          totalPages: Math.ceil(totalCount / limit),
+        },
+      });
+    } catch (error) {
+      // Handle any errors during the query
+      res.status(500).json({
+        success: false,
+        message: 'Error fetching rejected user list',
+        error: error.message,
+      });
+    }
+  };
   
