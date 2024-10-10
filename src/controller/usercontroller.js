@@ -290,44 +290,45 @@ exports.updatePin = async (req, res) => {
  // Assuming you have a User model defined
 
  exports.userList = async (req, res) => {
-    try {
-      // Destructure query parameters for searching and sorting
-      const {fullName, phoneNumber, sortBy = 'createdAt', sortOrder = 'desc' } = req.query; // Default to 'desc' for recent first
-  
-      // Build the search query
-      const searchQuery = {};
-      if (fullName) {
-        searchQuery.fullName = { $regex:fullName, $options: 'i' }; // Case-insensitive search
-      }
-      
-      // Normalize phoneNumber for searching
-      if (phoneNumber) {
-        const normalizedPhoneNumber = phoneNumber.replace(/[^\d]/g, ''); // Remove non-digit characters
-        searchQuery.phoneNumber = { $regex: normalizedPhoneNumber, $options: 'i' }; // Case-insensitive search
-      }
-  
-      // Determine sort order
-      const sortOptions = {};
-      sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1; // Ascending or descending
-  
-      // Fetch users based on the search query and sorting options
-      const users = await Registration.find(searchQuery).sort(sortOptions);
-      
-      // Send the user list as a response
-      res.status(200).json({
-        success: true,
-        message: 'User list fetched successfully',
-        data: users,
-      });
-    } catch (error) {
-      // Handle any errors that occur during fetching
-      res.status(500).json({
-        success: false,
-        message: 'Error fetching user list',
-        error: error.message,
-      });
+  try {
+    // Destructure query parameters for searching and sorting
+    const { fullName, phoneNumber, sortBy = 'createdAt', sortOrder = 'desc' } = req.query; // Default to 'desc' for recent first
+
+    // Build the search query
+    const searchQuery = { isApproved: true }; // Only show approved users
+    if (fullName) {
+      searchQuery.fullName = { $regex: fullName, $options: 'i' }; // Case-insensitive search
     }
-  };
+
+    // Normalize phoneNumber for searching
+    if (phoneNumber) {
+      const normalizedPhoneNumber = phoneNumber.replace(/[^\d]/g, ''); // Remove non-digit characters
+      searchQuery.phoneNumber = { $regex: normalizedPhoneNumber, $options: 'i' }; // Case-insensitive search
+    }
+
+    // Determine sort order
+    const sortOptions = {};
+    sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1; // Ascending or descending
+
+    // Fetch users based on the search query and sorting options
+    const users = await Registration.find(searchQuery).sort(sortOptions);
+
+    // Send the user list as a response
+    res.status(200).json({
+      success: true,
+      message: 'User list fetched successfully',
+      data: users,
+    });
+  } catch (error) {
+    // Handle any errors that occur during fetching
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching user list',
+      error: error.message,
+    });
+  }
+};
+
   exports.freeTrialUsers = async (req, res) => {
     try {
       const {
