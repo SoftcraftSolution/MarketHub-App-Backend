@@ -3,6 +3,7 @@ const router = express.Router();
 const userController=require('../controller/usercontroller')
 const { uploadVisitingCard } = require('../middleware/imageupload');
 
+
 router.post('/create-registration', uploadVisitingCard,userController.createRegistration)
 router.post('/verify-email',userController.verifyEmail)
 router.post('/create-pin',userController.createPin)
@@ -18,6 +19,9 @@ router.get('/reject-user',userController.rejectUser)
 router.get("/rejected-user-list",userController.rejectedUsers)
 router.get("/user-approve",userController.userApproved)
 router.post("/check-user-approve",userController.checkUserApproved)
+
+//Extended days Api
+
 
 //logi
 

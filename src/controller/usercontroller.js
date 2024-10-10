@@ -101,55 +101,104 @@ exports.createRegistration = async (req, res) => {
 
 
 exports.verifyEmail = async (req, res) => {
-    try {
-        const { email, verifyUser } = req.body; // Extracting verifyUser flag from the request body
+  try {
+      const { email, verifyUser } = req.body; // Extracting verifyUser flag from the request body
 
-        // If verifyUser is true, find the user by email
-        let user;
-        if (verifyUser) {
-            user = await Registration.findOne({ email });
-            if (!user) {
-                return res.status(404).json({ error: 'User not found' });
-            }
-        } else {
-            // If not verifying, set a default user object (optional)
-            user = { email }; // Create a temporary user object with the email
-        }
+      // Find the user by email
+      const user = await Registration.findOne({ email });
+      let tempUser;
+      let isAlreadyRegistered = false;
 
-        // Generate OTP and update the user in the database
-        const otp = generateOTP();
-        if (verifyUser) {
-            user.otp = otp;
-            await user.save(); // Save the OTP to the user's document only if verifying
-        }
+      if (user) {
+          isAlreadyRegistered = true; // User exists, set the flag to true
+      }
 
-        console.log(`OTP generated for email: ${email} - OTP: ${otp}`);
+      if (verifyUser) {
+          if (!isAlreadyRegistered) {
+              return res.status(404).json({ error: 'User not found' });
+          }
+      } else {
+          // If verifyUser is false and user is not registered, send an OTP
+          if (!isAlreadyRegistered) {
+              // Create a temporary user object with the email
+              tempUser = { email }; 
+              
+              // Generate OTP
+               
+              tempUser.otp  = generateOTP(); // Assign OTP to the temporary user
+              
+              // Prepare mail options to send OTP
+              const mailOptions = {
+                  from: process.env.EMAIL_USERNAME,  // Sender's email address
+                  to: email,  // Recipient's email address
+                  subject: 'Your OTP for verification',
+                  text: `Your OTP code is: ${tempUser.otp}` // Message body
+              };
 
-        // Send the OTP via email
-        const mailOptions = {
-            from: process.env.EMAIL_USERNAME,  // Sender's email address
-            to: email,  // Recipient's email address
-            subject: 'Your OTP for verification',
-            text: `Your OTP code is: ${otp}` // Message body
-        };
+              // Send email using nodemailer
+              await transporter.sendMail(mailOptions);
+              console.log(`OTP sent to email: ${email}`);
 
-        // Send email using nodemailer
-        await transporter.sendMail(mailOptions);
+              // Respond with user details and OTP
+              return res.status(200).json({
+                  message: 'OTP sent successfully to email',
+                  user: tempUser,
+                  isAlreadyRegistered, // Add registration status to the response
+                   // Include OTP in the response
+              });
+          }else{
+            tempUser = { email }; 
+              
+            // Generate OTP
+             
+            tempUser.otp  = generateOTP();
+            return res.status(200).json({
+              // message: 'OTP sent successfully to email',
+              user: tempUser,
+              isAlreadyRegistered, // Add registration status to the response
+               // Include OTP in the response
+          });
+          }
+      }
 
-        console.log(`OTP sent to email: ${email}`);
+      // Generate OTP and update the user in the database if the user is already registered
+      const otp = generateOTP();
+      if (isAlreadyRegistered) {
+          user.otp = otp; // Set OTP only if the user is registered
+          await user.save(); // Save the OTP to the user's document
+      }
 
-        // Respond with user details and OTP (optional for debugging)
-        res.status(200).json({
-            message: 'OTP sent successfully to email',
-            user,
-            otp // You may want to remove this in production for security reasons
-        });
+      console.log(`OTP generated for email: ${email} - OTP: ${otp}`);
 
-    } catch (error) {
-        console.error("Error during OTP verification:", error); // Log the error for debugging
-        return res.status(500).json({ error: 'Failed to send OTP' });
-    }
+      // Send the OTP via email only if verifyUser is true
+      if (verifyUser) {
+          const mailOptions = {
+              from: process.env.EMAIL_USERNAME,  // Sender's email address
+              to: email,  // Recipient's email address
+              subject: 'Your OTP for verification',
+              text: `Your OTP code is: ${otp}` // Message body
+          };
+
+          // Send email using nodemailer
+          await transporter.sendMail(mailOptions);
+          console.log(`OTP sent to email: ${email}`);
+      }
+
+      // Respond with user details, OTP, and registration status
+      res.status(200).json({
+          message: verifyUser ? 'OTP sent successfully to email' : 'User found',
+          user,
+          isAlreadyRegistered, // Add registration status to the response
+          otp: verifyUser ? otp : null // Include OTP only if verifyUser is true
+      });
+
+  } catch (error) {
+      console.error("Error during OTP verification:", error); // Log the error for debugging
+      return res.status(500).json({ error: 'Failed to send OTP' });
+  }
 };
+
+
 
 exports.createPin = async (req, res) => {
     try {
