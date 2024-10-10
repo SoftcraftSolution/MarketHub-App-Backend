@@ -189,7 +189,7 @@ exports.verifyEmail = async (req, res) => {
           message: verifyUser ? 'OTP sent successfully to email' : 'User found',
           user,
           isAlreadyRegistered, // Add registration status to the response
-          otp: verifyUser ? otp : null // Include OTP only if verifyUser is true
+         // Include OTP only if verifyUser is true
       });
 
   } catch (error) {
