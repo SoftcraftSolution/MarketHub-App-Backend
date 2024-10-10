@@ -86,8 +86,8 @@ exports.createRegistration = async (req, res) => {
 
         // Send a success response with the registration details
         res.status(201).json({
-            message: 'Registration successful',
-            registration: newRegistration,
+          
+            newRegistration,
         });
     } catch (error) {
         console.error(error); // Log the error for debugging
