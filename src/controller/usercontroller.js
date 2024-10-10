@@ -728,6 +728,33 @@ exports.updatePin = async (req, res) => {
       });
     }
   };
+  exports.checkUserApproved = async (req, res) => {
+    try {
+      const email = req.body.email;  // Get email from request body
+      const user = await Registration.findOne({ email });  // Query user by email
+    
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+  
+      if (user.isApproved) {
+     
+        return res.status(200).json({
+          isApproved: true,
+         
+        });
+      } else {
+        // If not approved, send false
+        return res.status(200).json({
+          isApproved: false,
+        });
+      }
+    } catch (error) {
+      return res.status(500).json({ message: 'Server error', error: error.message });
+    }
+  };
+  
+  
   
   
   
