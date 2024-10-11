@@ -448,79 +448,72 @@ exports.updatePin = async (req, res) => {
   
   exports.expiredTrailUsers = async (req, res) => {
     try {
-      // Get the current date
-      const currentDate = new Date();
-  
-      // Destructure query parameters for searching and pagination
-      const {
-        fullName,
-        phoneNumber,
-        sortBy = 'planEndDate',
-        sortOrder = 'desc',
-        page = 1,
-        limit = 10
-      } = req.query; // Default to 'desc' for recent first and page 1 with 10 items per page
-  
-      // Build the search query
-      const searchQuery = {
-        planEndDate: { $lt: currentDate } // Only look for expired users
-      };
-  
-      if (fullName) {
-        searchQuery.fullName = { $regex: fullName, $options: 'i' }; // Case-insensitive search
-      }
-  
-      // Normalize phoneNumber for searching
-      if (phoneNumber) {
-        const normalizedPhoneNumber = phoneNumber.replace(/[^\d]/g, ''); // Remove non-digit characters
-        searchQuery.phoneNumber = { $regex: normalizedPhoneNumber, $options: 'i' }; // Case-insensitive search
-      }
-  
-      // Determine sort order
-      const sortOptions = {};
-      sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1; // Ascending or descending
-  
-      // Calculate how many documents to skip for pagination
-      const skip = (page - 1) * limit;
-  
-      // Fetch expired users based on the search query and sorting options with pagination
-      const expiredUsers = await Registration.find(searchQuery)
-        .sort(sortOptions)
-        .skip(skip)
-        .limit(Number(limit)); // Limit to the specified number of users
-  
-      // Check if any expired users were found
-      if (!expiredUsers || expiredUsers.length === 0) {
-        return res.status(404).json({
-          success: false,
-          message: 'No expired users found',
+        // Get the current date
+        const currentDate = new Date();
+
+        // Calculate the date 7 days from now
+        const expirationDate = new Date();
+        expirationDate.setDate(currentDate.getDate() + 7); // Set to 7 days from now
+
+        // Destructure query parameters for pagination
+        const {
+            sortBy = 'planEndDate',
+            sortOrder = 'desc',
+            page = 1,
+            limit = 10
+        } = req.query; // Default to 'desc' for recent first and page 1 with 10 items per page
+
+        // Build the search query to find users whose plans will expire in the next 7 days
+        const searchQuery = {
+            planEndDate: { $lt: expirationDate } // Only look for users whose plans expire in the next 7 days
+        };
+
+        // Determine sort order
+        const sortOptions = {};
+        sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1; // Ascending or descending
+
+        // Calculate how many documents to skip for pagination
+        const skip = (page - 1) * limit;
+
+        // Fetch expired users based on the search query and sorting options with pagination
+        const expiredUsers = await Registration.find(searchQuery)
+            .sort(sortOptions)
+            .skip(skip)
+            .limit(Number(limit)); // Limit to the specified number of users
+
+        // Check if any expired users were found
+        if (!expiredUsers || expiredUsers.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'No users found whose plans will expire in the next 7 days',
+            });
+        }
+
+        // Get the total count of expired users for pagination
+        const totalCount = await Registration.countDocuments(searchQuery);
+
+        // Respond with the list of expired users and pagination info
+        res.status(200).json({
+            success: true,
+            message: 'Users with plans expiring in the next 7 days fetched successfully',
+            data: expiredUsers,
+            pagination: {
+                total: totalCount,
+                page: Number(page),
+                limit: Number(limit),
+                totalPages: Math.ceil(totalCount / limit),
+            },
         });
-      }
-  
-      // Get the total count of expired users for pagination
-      const totalCount = await Registration.countDocuments(searchQuery);
-  
-      // Respond with the list of expired users and pagination info
-      res.status(200).json({
-        success: true,
-        message: 'Expired user list fetched successfully',
-        data: expiredUsers,
-        pagination: {
-          total: totalCount,
-          page: Number(page),
-          limit: Number(limit),
-          totalPages: Math.ceil(totalCount / limit),
-        },
-      });
     } catch (error) {
-      // Handle any errors during the query
-      res.status(500).json({
-        success: false,
-        message: 'Error fetching expired user list',
-        error: error.message,
-      });
+        // Handle any errors during the query
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching expired user list',
+            error: error.message,
+        });
     }
-  };
+};
+
   
   exports.freeUsers = async (req, res) => {
     try {
