@@ -45,7 +45,7 @@ const registrationSchema = new mongoose.Schema({
         expires: 86400
     },
     pin: {
-        type: Number,
+        type: String,
     },
     isApproved: {
         type: Boolean,
