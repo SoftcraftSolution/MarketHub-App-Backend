@@ -1,11 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const userController=require('../controller/usercontroller')
-const { uploadVisitingCard } = require('../middleware/imageupload');
+
 const refrencerateController=require('../controller/refrenceratecontroller')
+const homeupdateController=require('../controller/homeupdatecontroller')
+const { upload } = require('../middleware/imageupload');
 
 
-router.post('/create-registration', uploadVisitingCard,userController.createRegistration)
+router.post('/create-registration', upload,userController.createRegistration)
 router.post('/verify-email',userController.verifyEmail)
 router.post('/create-pin',userController.createPin)
 router.post('/forgot-pin',userController.forgotPinRequest)
@@ -21,6 +23,7 @@ router.get("/rejected-user-list",userController.rejectedUsers)
 router.get("/user-approve",userController.userApproved)
 router.post("/check-user-approve",userController.checkUserApproved)
 router.get("/get-reference-rate",refrencerateController.getCurrencyRates)
+router.post('/home-update',upload,homeupdateController.homeUpdate)
 
 //Extended days Api
 
