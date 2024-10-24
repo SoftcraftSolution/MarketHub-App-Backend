@@ -8,6 +8,7 @@ const homeupdateController=require('../controller/homeupdatecontroller')
 const { upload } = require('../middleware/imageupload');
 const CategoryController=require('../controller/categorycontroller')
 const itemController=require('../controller/itemcontroller')
+const lmeController=require('../controller/lmecontroller')
 
 
 router.post('/create-registration', upload,userController.createRegistration)
@@ -38,6 +39,7 @@ router.post('/create-item',itemController.createItem)
 router.get('/get-all-item',itemController.getAllItems)
 router.get('/getSpot-list',itemController.getSpotList)
 router.get('/spot-list',itemController.spotlist)
+router.get('/get-lme-warehouse',lmeController.getlmewarehouse)
 
 //Extended days Api
 
