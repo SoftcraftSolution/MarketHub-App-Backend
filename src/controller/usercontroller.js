@@ -18,8 +18,8 @@ const generateOTP = () => {
 const transporter = nodemailer.createTransport({
     service: 'gmail', // You can change this to your email provider
     auth: {
-        user: process.env.EMAIL_USERNAME, // Your email account
-        pass: process.env.EMAIL_PASSWORD, // Your email account's password
+        user: 'mhmarkethub@gmail.com' ,// Your email account
+        pass:'dfvm ymkh ajse hmgb' // Your email account's password
     },
 });
 
