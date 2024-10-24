@@ -58,3 +58,15 @@ exports.homeUpdate = async (req, res) => {
     }
 };
 
+exports.getHomeUpdates = async (req, res) => {
+    try {
+        const homeUpdates = await HomeUpdate.find();
+
+        res.status(200).json({
+            message: 'Home updates retrieved successfully',
+            homeUpdates,
+        });
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching home updates.' });
+    }
+};
