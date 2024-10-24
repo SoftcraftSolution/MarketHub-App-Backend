@@ -37,6 +37,7 @@ router.post('/create-subcategory',CategoryController.createSubcategory)
 router.post('/create-item',itemController.createItem)
 router.get('/get-all-item',itemController.getAllItems)
 router.get('/getSpot-list',itemController.getSpotList)
+router.get('/spot-list',itemController.spotlist)
 
 //Extended days Api
 

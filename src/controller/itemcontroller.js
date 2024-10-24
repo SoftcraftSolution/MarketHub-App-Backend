@@ -63,3 +63,36 @@ exports.getSpotList = async (req, res) => {
         res.status(500).json({ message: 'Error fetching items' });
     }
 };
+exports.spotlist = async (req, res) => {
+    try {
+        // Extract category from query parameters
+        const { category } = req.query;
+
+        if (!category) {
+            return res.status(400).json({ message: 'Category is required' });
+        }
+
+        // Query the database to find all items with the specified category
+        const items = await Item.find({ category });
+
+        if (!items || items.length === 0) {
+            return res.status(404).json({ message: 'No items found for this category' });
+        }
+
+        // Extract unique types and subcategories
+        const types = [...new Set(items.map(item => item.type))];
+        const subcategories = [...new Set(items.map(item => item.subcategory))];
+
+        // Return all matching items along with unique types and subcategories
+        res.status(200).json({
+            category,
+            items,
+            types,
+            subcategories
+        });
+    } catch (error) {
+        console.error('Error fetching items:', error);
+        res.status(500).json({ message: 'Error fetching items' });
+    }
+};
+
