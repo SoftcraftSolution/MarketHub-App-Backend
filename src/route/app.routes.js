@@ -40,6 +40,8 @@ router.get('/get-all-item',itemController.getAllItems)
 router.get('/getSpot-list',itemController.getSpotList)
 router.get('/spot-list',itemController.spotlist)
 router.get('/get-lme-warehouse',lmeController.getlmewarehouse)
+router.get('/get-settlement-list',lmeController.getSettlements)
+router.get('/get-cash',lmeController.getSettlementCash)
 
 //Extended days Api
 
