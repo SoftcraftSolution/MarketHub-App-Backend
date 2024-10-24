@@ -79,20 +79,44 @@ exports.spotlist = async (req, res) => {
             return res.status(404).json({ message: 'No items found for this category' });
         }
 
-        // Extract unique types and subcategories
-        const types = [...new Set(items.map(item => item.type))];
-        const subcategories = [...new Set(items.map(item => item.subcategory))];
+        // Extract unique types and their corresponding subcategories
+        const typeSubcategoryMap = {};
 
-        // Return all matching items along with unique types and subcategories
+        items.forEach(item => {
+            const { type, subcategory } = item;
+
+            // Initialize the type array if it doesn't exist
+            if (!typeSubcategoryMap[type]) {
+                typeSubcategoryMap[type] = [];
+            }
+
+            // Add the subcategory if it's not already present
+            if (!typeSubcategoryMap[type].includes(subcategory)) {
+                typeSubcategoryMap[type].push(subcategory);
+            }
+        });
+
+        // Convert the object to an array of type-subcategory pairs
+        const typeSubcategoryList = Object.entries(typeSubcategoryMap).map(([type, subcategories]) => ({
+            type,
+            subcategories
+        }));
+
+        // Extract unique types from the keys of the typeSubcategoryMap
+        const Types = Object.keys(typeSubcategoryMap);
+
+        // Return all matching items along with unique types and their subcategories
         res.status(200).json({
             category,
             items,
-            types,
-            subcategories
+            Types, // List of unique types
+            typeSubcategoryList
         });
     } catch (error) {
         console.error('Error fetching items:', error);
         res.status(500).json({ message: 'Error fetching items' });
     }
 };
+
+
 
