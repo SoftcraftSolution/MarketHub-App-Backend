@@ -8,6 +8,8 @@ const userRoutes=require('./src/route/app.routes')
 const cors = require('cors');
 const path = require('path');
 const http = require('http');
+const cron = require('node-cron');
+//const BaseMetal = require('./src/model/basemetal');
 
 
 const app = express();
@@ -57,7 +59,32 @@ server.listen(port, () => {
 
 // Create a WebSocket server
 
+cron.schedule('0 0 * * *', async () => { 
+  try {
+    const items = await BaseMetal.find();
 
+    for (let item of items) {
+      const currentPrice = parseFloat(item.price) || 0;
+      const lastPrice = parseFloat(item.lastPrice) || 0;
+
+      if (currentPrice !== lastPrice) {
+        item.lastPrice = item.price;
+
+        const percentageChange = ((currentPrice - lastPrice) / (lastPrice || 1)) * 100;
+        item.percentageChange = percentageChange.toFixed(2);
+
+        const incrementPrice = currentPrice - lastPrice;
+        item.incrementPrice = incrementPrice.toFixed(2);
+
+        await item.save();
+      }
+    }
+
+    console.log('Cron job executed. Updated prices and percentage changes.');
+  } catch (error) {
+    console.error('Error running cron job:', error);
+  }
+});
   
 
 

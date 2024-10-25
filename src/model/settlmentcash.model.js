@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const settlementSchema = new mongoose.Schema({
-  settlements: [
+  settlementscash: [
     {
       symbol: {
         type: String,

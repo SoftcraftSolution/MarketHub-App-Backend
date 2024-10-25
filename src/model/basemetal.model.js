@@ -151,5 +151,4 @@ const ItemSchema = new mongoose.Schema({
 // Create the model
 const Item = mongoose.model('BaseMetal', ItemSchema);
 
-// Export the model
 module.exports = Item;
