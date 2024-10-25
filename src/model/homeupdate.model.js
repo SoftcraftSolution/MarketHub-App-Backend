@@ -1,19 +1,21 @@
 const mongoose = require('mongoose');
 
-const homeUpdateSchema = new mongoose.Schema({
-    text:{
-        type:String,
+const homeUpdateSchema = new mongoose.Schema(
+    {
+        text: {
+            type: String,
+            required: true, // Optional: add this if you want to make the field required
+        },
+        image: {
+            type: String,
+            required: true, // Optional: add this if you want to make the field required
+        }
     },
-    image:{
-        type:String,
-    },
-    createdAt: {
-        type: Date,
-        default: Date.now,
-     
+    {
+        timestamps: true, // Correctly place timestamps here
     }
-});
+);
 
-const homeUpdate = mongoose.model('homeUpdate', homeUpdateSchema);
+const HomeUpdate = mongoose.model('HomeUpdate', homeUpdateSchema); // Capitalize the model name
 
-module.exports = homeUpdate;
+module.exports = HomeUpdate;
