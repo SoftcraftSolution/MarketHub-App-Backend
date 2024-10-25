@@ -117,6 +117,38 @@ exports.spotlist = async (req, res) => {
         res.status(500).json({ message: 'Error fetching items' });
     }
 };
+exports.pricechange = async (req, res) => {
+    try {
+        const { category, type, subcategory, newPrice } = req.body; // Expecting category, type, subcategory, and new price in the request body
 
+        // Find the item based on category, type, and subcategory
+        const item = await Item.findOne({ category, type, subcategory });
+        if (!item) {
+            return res.status(404).json({ message: 'Item not found' });
+        }
+
+        // Calculate price changes
+        const lastPrice = parseFloat(item.price) || 0; // Default to 0 if price is null or not a number
+        const incrementPrice = parseFloat(newPrice) - lastPrice; // Calculate increment
+        const percentageChange = lastPrice ? ((incrementPrice / lastPrice) * 100).toFixed(2) : 0; // Calculate percentage change
+
+        // Update the item
+        item.price = newPrice; // Update new price
+        item.lastPrice = lastPrice.toString(); // Store the last price as string
+        item.incrementPrice = incrementPrice.toString(); // Store increment price as string
+        item.percentageChange = percentageChange.toString(); // Store percentage change as string
+
+        // Save the updated item
+        await item.save();
+
+        res.status(200).json({
+            message: 'Price updated successfully',
+            updatedItem: item
+        });
+    } catch (error) {
+        console.error('Error updating price:', error);
+        res.status(500).json({ message: 'Error updating price' });
+    }
+};
 
 

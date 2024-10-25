@@ -140,9 +140,11 @@ const ItemSchema = new mongoose.Schema({
     },
     percentageChange:{
         type:String,
+        default:0
     },
     incrementPrice: {
         type: String,
+        default:0
       },
     }, {
       timestamps: true
