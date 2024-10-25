@@ -133,8 +133,20 @@ const ItemSchema = new mongoose.Schema({
         type: String,
         required: true,
         default:0
-    }
-});
+    },
+    lastPrice:{
+        type:String,
+        default:0
+    },
+    percentageChange:{
+        type:String,
+    },
+    incrementPrice: {
+        type: String,
+      },
+    }, {
+      timestamps: true
+    });
 
 // Create the model
 const Item = mongoose.model('BaseMetal', ItemSchema);

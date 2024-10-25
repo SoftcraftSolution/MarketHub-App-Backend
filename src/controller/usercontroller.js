@@ -796,6 +796,26 @@ exports.updatePin = async (req, res) => {
       return res.status(500).json({ message: 'Server error', error: error.message });
     }
   };
+  exports.pendingUserList = async (req, res) => {
+    try {
+      // Assuming you have a User model
+      const pendingUsers = await Registration.find({ isApproved: false });
+      
+      // Send the list of pending users as a response
+      res.status(200).json({
+        success: true,
+        data: pendingUsers,
+      });
+    } catch (error) {
+      // Handle any errors
+      res.status(500).json({
+        success: false,
+        message: 'Error fetching pending users',
+        error: error.message,
+      });
+    }
+  };
+  
   
   
   
