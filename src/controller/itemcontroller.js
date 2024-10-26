@@ -150,5 +150,30 @@ exports.pricechange = async (req, res) => {
         res.status(500).json({ message: 'Error updating price' });
     }
 };
+exports.priceUpdate= async (req, res) => {
+    const { id ,price} = req.query;  // Get the ID from the query parameters
+    // Get the new price from the request body
 
+    try {
+        // Validate price
+        if (price == null || price < 0) {
+            return res.status(400).json({ message: 'Invalid price' });
+        }
+
+        const item = await Item.findByIdAndUpdate(
+            id,
+            { price: price },
+            { new: true } // Return the updated document
+        );
+
+        if (!item) {
+            return res.status(404).json({ message: 'Item not found' });
+        }
+
+        res.status(200).json({ message: 'Price updated successfully', item });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+}
 
