@@ -590,7 +590,7 @@ exports.updatePin = async (req, res) => {
   };
   exports.rejectUser = async (req, res) => {
     try {
-      const { email, isRejected } = req.query; // Assuming email and isRejected status are sent in the request query
+      const { email } = req.query; // Extract email from the request query
   
       // Validate the email
       if (!email) {
@@ -600,12 +600,12 @@ exports.updatePin = async (req, res) => {
         });
       }
   
-      // Update the user based on the email field
+      // Update the user based on the email field, always setting isRejected to true
       const updatedUser = await Registration.findOneAndUpdate(
         { email: email }, // Find user by email
         {
-          isRejected: isRejected, // Set the isRejected status based on request
-          rejectionDate: isRejected ? new Date() : null, // Set current date if rejected
+          isRejected: true, // Set isRejected status to true
+          rejectionDate: new Date() // Set current date as rejection date
         },
         { new: true } // Return the updated document
       );
@@ -621,7 +621,7 @@ exports.updatePin = async (req, res) => {
       // Respond with the updated user information
       res.status(200).json({
         success: true,
-        message: isRejected ? 'User rejected successfully.' : 'User status updated successfully.',
+        message: 'User rejected successfully.',
         data: updatedUser,
       });
     } catch (error) {
@@ -636,79 +636,36 @@ exports.updatePin = async (req, res) => {
   
   
   
-  exports.rejectedUsers = async (req, res) => {
+  
+  exports.rejectedUserList = async (req, res) => {
     try {
-      // Destructure query parameters for searching and pagination
-      const {
-        fullName,
-        phoneNumber,
-        sortBy = 'createdAt', // Default sort field
-        sortOrder = 'desc', // Default sort order
-        page = 1, // Default to page 1
-        limit = 10 // Default to 10 users per page
-      } = req.query;
+      // Fetch all approved users
+      const approvedUsers = await Registration.find({ isRejected: true }) // Only approved users
   
-      // Build the search query
-      const searchQuery = {
-        isRejected: true // Only look for rejected users
-      };
-  
-      // Case-insensitive search for fullName
-      if (fullName) {
-        searchQuery.fullName = { $regex: fullName, $options: 'i' }; // Case-insensitive search
-      }
-  
-      // Normalize phoneNumber for searching
-      if (phoneNumber) {
-        const normalizedPhoneNumber = phoneNumber.replace(/[^\d]/g, ''); // Remove non-digit characters
-        searchQuery.phoneNumber = { $regex: normalizedPhoneNumber, $options: 'i' }; // Case-insensitive search
-      }
-  
-      // Determine sort order
-      const sortOptions = {};
-      sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1; // Ascending or descending
-  
-      // Calculate how many documents to skip for pagination
-      const skip = (page - 1) * limit;
-  
-      // Fetch rejected users based on the search query and sorting options with pagination
-      const rejectedUsers = await Registration.find(searchQuery)
-        .sort(sortOptions)
-        .skip(skip)
-        .limit(Number(limit)); // Limit to the specified number of users
-  
-      // Check if any rejected users were found
-      if (!rejectedUsers || rejectedUsers.length === 0) {
+      // Check if any approved users were found
+      if (!approvedUsers || approvedUsers.length === 0) {
         return res.status(200).json({
           success: false,
-          message: 'No rejected users found',
+          message: 'No approved users found',
         });
       }
   
-      // Get the total count of rejected users for pagination
-      const totalCount = await Registration.countDocuments(searchQuery);
-  
-      // Respond with the list of rejected users and pagination info
+      // Respond with the list of approved users
       res.status(200).json({
         success: true,
-        message: 'Rejected user list fetched successfully',
-        data: rejectedUsers,
-        pagination: {
-          total: totalCount,
-          page: Number(page),
-          limit: Number(limit),
-          totalPages: Math.ceil(totalCount / limit),
-        },
+        message: 'Approved user list fetched successfully',
+        data: approvedUsers
       });
     } catch (error) {
       // Handle any errors during the query
       res.status(500).json({
         success: false,
-        message: 'Error fetching rejected user list',
+        message: 'Error fetching approved user list',
         error: error.message,
       });
     }
   };
+  
   exports.userApproved = async (req, res) => {
     try {
       const { email, isApproved } = req.query;
