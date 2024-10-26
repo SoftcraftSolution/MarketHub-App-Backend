@@ -150,30 +150,54 @@ exports.pricechange = async (req, res) => {
         res.status(500).json({ message: 'Error updating price' });
     }
 };
-exports.priceUpdate= async (req, res) => {
-    const { id ,price} = req.query;  // Get the ID from the query parameters
-    // Get the new price from the request body
+exports.priceUpdate = async (req, res) => {
+    const updates = req.body; // Expect an array of objects with id and price
 
     try {
-        // Validate price
-        if (price == null || price < 0) {
-            return res.status(400).json({ message: 'Invalid price' });
-        }
+        const updatePromises = updates.map(async (update) => {
+            const { id, price } = update;
 
-        const item = await Item.findByIdAndUpdate(
-            id,
-            { price: price },
-            { new: true } // Return the updated document
-        );
+            // Validate price
+            if (price == null || price < 0) {
+                return { id, message: 'Invalid price' };
+            }
 
-        if (!item) {
-            return res.status(404).json({ message: 'Item not found' });
-        }
+            const item = await Item.findById(id); // First, find the item to get the current price
+            if (!item) {
+                return { id, message: 'Item not found' };
+            }
 
-        res.status(200).json({ message: 'Price updated successfully', item });
+            const lastPrice = parseFloat(item.price) || 0; // Default to 0 if price is null or not a number
+            const incrementPrice = parseFloat(price) - lastPrice; // Calculate increment
+            const percentageChange = lastPrice ? ((incrementPrice / lastPrice) * 100).toFixed(2) : 0; // Calculate percentage change
+
+            // Update the item
+            item.price = price; // Update new price
+            item.lastPrice = lastPrice.toString(); // Store the last price as string
+            item.incrementPrice = incrementPrice.toString(); // Store increment price as string
+            item.percentageChange = percentageChange.toString(); // Store percentage change as string
+
+            // Save the updated item
+            await item.save();
+
+            return { id, message: 'Price updated successfully', item };
+        });
+
+        const results = await Promise.all(updatePromises);
+
+        // Separate successful and error responses
+        const successResponses = results.filter(result => result.message === 'Price updated successfully');
+        const errorResponses = results.filter(result => result.message !== 'Price updated successfully');
+
+        res.status(200).json({
+            success: successResponses,
+            errors: errorResponses
+        });
     } catch (error) {
-        console.error(error);
+        console.error('Error updating prices:', error);
         res.status(500).json({ message: 'Server error' });
     }
-}
+};
+
+
 
