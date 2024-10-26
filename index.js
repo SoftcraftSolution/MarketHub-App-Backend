@@ -59,7 +59,7 @@ server.listen(port, () => {
 
 // Create a WebSocket server
 
-cron.schedule('0 0 * * *', async () => { 
+cron.schedule('0 12 * * *', async () => { 
   try {
     const items = await BaseMetal.find();
 
@@ -67,9 +67,10 @@ cron.schedule('0 0 * * *', async () => {
       const currentPrice = parseFloat(item.price) || 0;
       const lastPrice = parseFloat(item.lastPrice) || 0;
 
-      if (currentPrice !== lastPrice) {
-        item.lastPrice = item.price;
+      // Update the lastPrice with currentPrice
+      item.lastPrice = currentPrice;
 
+      if (currentPrice !== lastPrice) {
         const percentageChange = ((currentPrice - lastPrice) / (lastPrice || 1)) * 100;
         item.percentageChange = percentageChange.toFixed(2);
 
@@ -80,7 +81,7 @@ cron.schedule('0 0 * * *', async () => {
       }
     }
 
-    console.log('Cron job executed. Updated prices and percentage changes.');
+    console.log('Cron job executed at 12:00 PM. Updated prices and percentage changes.');
   } catch (error) {
     console.error('Error running cron job:', error);
   }
