@@ -710,7 +710,7 @@ exports.updatePin = async (req, res) => {
   };
   exports.userApproved = async (req, res) => {
     try {
-      const { email, isApproved } = req.body;
+      const { email, isApproved } = req.query;
   
       if (!email) {
         return res.status(400).json({
