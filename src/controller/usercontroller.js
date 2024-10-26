@@ -590,19 +590,19 @@ exports.updatePin = async (req, res) => {
   };
   exports.rejectUser = async (req, res) => {
     try {
-      const { userId, isRejected } = req.body; // Assuming user ID and isRejected status are sent in the request body
+      const { email, isRejected } = req.query; // Assuming email and isRejected status are sent in the request query
   
-      // Validate the user ID
-      if (!userId) {
+      // Validate the email
+      if (!email) {
         return res.status(400).json({
           success: false,
-          message: 'User ID is required.',
+          message: 'Email ID is required.',
         });
       }
   
-    
-      const updatedUser = await Registration.findByIdAndUpdate(
-        userId,
+      // Update the user based on the email field
+      const updatedUser = await Registration.findOneAndUpdate(
+        { email: email }, // Find user by email
         {
           isRejected: isRejected, // Set the isRejected status based on request
           rejectionDate: isRejected ? new Date() : null, // Set current date if rejected
@@ -633,6 +633,7 @@ exports.updatePin = async (req, res) => {
       });
     }
   };
+  
   
   
   exports.rejectedUsers = async (req, res) => {
