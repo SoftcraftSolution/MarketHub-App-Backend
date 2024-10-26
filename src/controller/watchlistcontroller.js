@@ -33,3 +33,39 @@ exports.addWatchlistEntry = async (req, res) => {
         res.status(500).json({ message: 'Error adding to watchlist.' });
     }
 };
+// 2. Get a user's watchlist
+// 2. Get a user's watchlist with baseMetal in array format
+// 2. Get a user's watchlist with baseMetal in array format, excluding email field
+// 2. Get a user's watchlist with only necessary fields
+// 2. Get a user's watchlist with only baseMetal entries
+exports.getWatchlist = async (req, res) => {
+    const { email } = req.query; // Extract email from query parameters
+
+    try {
+        // Find the user by email
+        const user = await Registration.findOne({ email });
+        if (!user) {
+            return res.status(404).json({ message: 'User not found.' });
+        }
+
+        // Find all watchlist entries for this user
+        const watchlistEntries = await Watchlist.find({ email: user._id })
+            .populate('baseMetalId') // Populate base metal details
+            .exec();
+
+        // Extract only base metal details
+        const baseMetalList = watchlistEntries.map(entry => entry.baseMetalId);
+
+        res.status(200).json({
+            message: 'Watchlist retrieved successfully',
+            baseMetal: baseMetalList, // Return base metals directly as an array
+        });
+    } catch (error) {
+        console.error('Error retrieving watchlist:', error);
+        res.status(500).json({ message: 'Error retrieving watchlist.' });
+    }
+};
+
+
+
+

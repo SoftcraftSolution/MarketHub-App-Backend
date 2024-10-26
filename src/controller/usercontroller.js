@@ -816,6 +816,44 @@ exports.updatePin = async (req, res) => {
       });
     }
   };
+  exports.deleteUserByEmail = async (req, res) => {
+    try {
+      const { email } = req.query; // Get the email from query parameters
+  
+      // Validate the email
+      if (!email) {
+        return res.status(400).json({
+          success: false,
+          message: 'Email ID is required.',
+        });
+      }
+  
+      // Delete the user based on the email field
+      const deletedUser = await Registration.findOneAndDelete({ email: email });
+  
+      // Check if the user was found and deleted
+      if (!deletedUser) {
+        return res.status(404).json({
+          success: false,
+          message: 'User not found.',
+        });
+      }
+  
+      // Respond with success message
+      res.status(200).json({
+        success: true,
+        message: 'User deleted successfully.',
+        data: deletedUser,
+      });
+    } catch (error) {
+      // Handle any errors during deletion
+      res.status(500).json({
+        success: false,
+        message: 'Error deleting user.',
+        error: error.message,
+      });
+    }
+  };
   
   
   
