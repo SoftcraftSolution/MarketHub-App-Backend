@@ -198,6 +198,44 @@ exports.priceUpdate = async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 };
+exports.deleteWatchListById = async (req, res) => {
+  try {
+    const { id } = req.query; // Get the ID from query parameters
+
+    // Validate the ID
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: "User ID is required.",
+      });
+    }
+
+    // Delete the user based on the ID field
+    const deletedUser = await Registration.findOneAndDelete({ _id: id });
+
+    // Check if the user was found and deleted
+    if (!deletedUser) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found.",
+      });
+    }
+
+    // Respond with success message
+    res.status(200).json({
+      success: true,
+      message: "User deleted successfully.",
+      data: deletedUser,
+    });
+  } catch (error) {
+    // Handle any errors during deletion
+    res.status(500).json({
+      success: false,
+      message: "Error deleting user.",
+      error: error.message,
+    });
+  }
+};
 
 
 
