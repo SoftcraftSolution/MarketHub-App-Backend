@@ -115,7 +115,7 @@ exports.verifyEmail = async (req, res) => {
 
       if (verifyUser) {
           if (!isAlreadyRegistered) {
-              return res.status(404).json({ error: 'User not found' });
+              return res.status(200).json({ message: 'User not registered' });
           }
       } else {
           // If verifyUser is false and user is not registered, send an OTP
