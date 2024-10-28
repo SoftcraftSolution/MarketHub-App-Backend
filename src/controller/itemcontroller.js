@@ -2,6 +2,7 @@
 
 const Item = require('../model/basemetal.model'); 
 const WatchList=require('../model/watchlist.model')
+const User=require('../model/user.model')
     
 
 
@@ -201,45 +202,7 @@ exports.priceUpdate = async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 };
-exports.deleteWatchListById = async (req, res) => {
-    try {
-      const { id } = req.query; // Get the ID from query parameters
-  
-      // Validate the ID
-      if (!id) {
-        return res.status(400).json({
-          success: false,
-          message: "Watch list ID is required.",
-        });
-      }
-  
-      // Delete the watch list based on the ID field
-      const deletedWatchList = await WatchList.findByIdAndDelete(id);
-  
-      // Check if the watch list was found and deleted
-      if (!deletedWatchList) {
-        return res.status(404).json({
-          success: false,
-          message: "Watch list not found.",
-        });
-      }
-  
-      // Respond with success message
-      res.status(200).json({
-        success: true,
-        message: "Watch list deleted successfully.",
-        data: deletedWatchList,
-      });
-    } catch (error) {
-      // Handle any errors during deletion
-      res.status(500).json({
-        success: false,
-        message: "Error deleting watch list.",
-        error: error.message,
-      });
-    }
-  };
-  
+
 
 
 
