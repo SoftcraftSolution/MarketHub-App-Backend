@@ -169,9 +169,9 @@ exports.deleteWatchListById = async (req, res) => {
 
         // Check if the baseMetalId was removed from the watchlist
         if (!updatedWatchlist || updatedWatchlist.baseMetalIds.length === 0) {
-            return res.status(404).json({
+            return res.status(200).json({
                 success: false,
-                message: "Watchlist entry not found for the provided base metal ID and email.",
+                message: "Watchlist entry empty.",
             });
         }
 
