@@ -9,6 +9,7 @@ const cors = require('cors');
 const path = require('path');
 const http = require('http');
 const cron = require('node-cron');
+const  BaseMetal=require('./src/model/basemetal.model')
 //const BaseMetal = require('./src/model/basemetal');
 
 
