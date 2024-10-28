@@ -96,29 +96,40 @@ exports.getWatchlist = async (req, res) => {
     const { email } = req.query; // Extract email from query parameters
 
     try {
+        // Validate the email
+        if (!email) {
+            return res.status(400).json({ message: 'Email is required.' });
+        }
+
         // Find the user by email
         const user = await Registration.findOne({ email });
         if (!user) {
             return res.status(404).json({ message: 'User not found.' });
         }
 
-        // Find all watchlist entries for this user
-        const watchlistEntries = await Watchlist.find({ userId: user._id }) // Query by userId
-            .populate('baseMetalId') // Populate base metal details
+        // Find the user's watchlist entry by email
+        const watchlistEntry = await Watchlist.findOne({ email })
+            .populate('baseMetalIds') // Populate details for each baseMetalId in the array
             .exec();
 
-        // Extract only base metal details
-        const baseMetalList = watchlistEntries.map(entry => entry.baseMetalId);
+        // Check if a watchlist entry exists
+        if (!watchlistEntry) {
+            return res.status(404).json({ message: 'No watchlist found for the user.' });
+        }
+
+        // Extract populated base metal details
+        const baseMetalList = watchlistEntry.baseMetalIds;
 
         res.status(200).json({
             message: 'Watchlist retrieved successfully',
-            baseMetal: baseMetalList, // Return base metals directly as an array
+            baseMetals: baseMetalList, // Return base metals directly as an array
         });
     } catch (error) {
         console.error('Error retrieving watchlist:', error);
         res.status(500).json({ message: 'Error retrieving watchlist.' });
     }
 };
+
 
 exports.deleteWatchListById = async (req, res) => {
     try {
