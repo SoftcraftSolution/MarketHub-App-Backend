@@ -1,6 +1,7 @@
 // controllers/itemController.js
 
-const Item = require('../model/basemetal.model'); // Adjust the path as necessary
+const Item = require('../model/basemetal.model'); 
+const Registration=require('../model/user.model')
 
 // Create a new item
 exports.createItem = async (req, res) => {
