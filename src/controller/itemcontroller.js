@@ -1,7 +1,9 @@
 // controllers/itemController.js
 
 const Item = require('../model/basemetal.model'); 
-const Registration=require('../model/user.model')
+const WatchList=require('../model/watchlist.model')
+    
+
 
 // Create a new item
 exports.createItem = async (req, res) => {
@@ -200,43 +202,44 @@ exports.priceUpdate = async (req, res) => {
     }
 };
 exports.deleteWatchListById = async (req, res) => {
-  try {
-    const { id } = req.query; // Get the ID from query parameters
-
-    // Validate the ID
-    if (!id) {
-      return res.status(400).json({
+    try {
+      const { id } = req.query; // Get the ID from query parameters
+  
+      // Validate the ID
+      if (!id) {
+        return res.status(400).json({
+          success: false,
+          message: "Watch list ID is required.",
+        });
+      }
+  
+      // Delete the watch list based on the ID field
+      const deletedWatchList = await WatchList.findByIdAndDelete(id);
+  
+      // Check if the watch list was found and deleted
+      if (!deletedWatchList) {
+        return res.status(404).json({
+          success: false,
+          message: "Watch list not found.",
+        });
+      }
+  
+      // Respond with success message
+      res.status(200).json({
+        success: true,
+        message: "Watch list deleted successfully.",
+        data: deletedWatchList,
+      });
+    } catch (error) {
+      // Handle any errors during deletion
+      res.status(500).json({
         success: false,
-        message: "User ID is required.",
+        message: "Error deleting watch list.",
+        error: error.message,
       });
     }
-
-    // Delete the user based on the ID field
-    const deletedUser = await Registration.findOneAndDelete({ _id: id });
-
-    // Check if the user was found and deleted
-    if (!deletedUser) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found.",
-      });
-    }
-
-    // Respond with success message
-    res.status(200).json({
-      success: true,
-      message: "User deleted successfully.",
-      data: deletedUser,
-    });
-  } catch (error) {
-    // Handle any errors during deletion
-    res.status(500).json({
-      success: false,
-      message: "Error deleting user.",
-      error: error.message,
-    });
-  }
-};
+  };
+  
 
 
 
