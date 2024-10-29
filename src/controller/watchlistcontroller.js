@@ -1,53 +1,37 @@
 const Watchlist = require('../model/watchlist.model'); // Update with the actual path to your model
 const Registration = require('../model/user.model'); // Update with the actual path to your model
 const BaseMetal = require('../model/basemetal.model');
+const fx=require('../model/fx.model')
+const lme=require('../model/lmescrapwatchlist.model')
+const mcx=require('../model/mcx.model')
+const shfe=require('../model/shfe.model')
  //
- exports.addWatchlistEntry = async (req, res) => {
-    const { email, baseMetalId } = req.body; // Extract email and baseMetalId from request body
-    console.log('Request Body:', req.body); 
-    console.log('Extracted Email:', email); // Log the email directly from the request body
+ exports.addToWatchlist = async (req, res) => {
+    const { email, baseMetalIds, fxIds, lmeIds, mcxIds, shfeIds } = req.body;
 
     try {
-        // Find the user by email
-        const user = await Registration.findOne({ email });
-        
-        console.log('User Lookup Result:', user); // Log the user object found
-        if (!user) {
-            console.warn('No user found with the provided email:', email); // Log warning if user is not found
-            return res.status(404).json({ message: 'User not found.' });
-        }
-
-        // If the user is found, log their email
-        console.log('User Email:', user.email); // Check the user's email
-        
-        // Find the base metal by ID
-        const baseMetal = await BaseMetal.findById(baseMetalId);
-        if (!baseMetal) {
-            console.warn('Base metal not found for ID:', baseMetalId); // Log warning if base metal is not found
-            return res.status(404).json({ message: 'Base metal not found.' });
-        }
-        console.log('Base Metal Found:', baseMetal); // Log the base metal object found
-
-        // Add baseMetalId to the user's watchlist or create a new watchlist entry if none exists
-        const updatedWatchlist = await Watchlist.findOneAndUpdate(
-            { email }, // Find by email
-            { $addToSet: { baseMetalIds: baseMetal._id } }, // Add baseMetalId to array if not already present
-            { new: true, upsert: true } // Create new entry if none exists
+        // Find or create the watchlist entry for the user by email
+        const watchlist = await Watchlist.findOneAndUpdate(
+            { email },
+            {
+                $addToSet: { 
+                    baseMetalIds: { $each: baseMetalIds || [] }, 
+                    fxIds: { $each: fxIds || [] }, 
+                    lmeIds: { $each: lmeIds || [] }, 
+                    mcxIds: { $each: mcxIds || [] }, 
+                    shfeIds: { $each: shfeIds || [] }
+                }
+            },
+            { new: true, upsert: true }
         );
 
-        // Send a response with the updated watchlist entry
         res.status(201).json({
-            message: 'Watchlist entry updated successfully',
-            updatedWatchlist: {
-                _id: updatedWatchlist._id,
-                baseMetalIds: updatedWatchlist.baseMetalIds,
-                email: updatedWatchlist.email,
-                createdAt: updatedWatchlist.createdAt,
-            }
+            message: 'Watchlist updated successfully',
+            watchlist
         });
     } catch (error) {
-        console.error('Error adding to watchlist:', error); // Log the error for debugging
-        res.status(500).json({ message: 'Error adding to watchlist.' });
+        console.error('Error updating watchlist:', error);
+        res.status(500).json({ message: 'Failed to update watchlist.' });
     }
 };
 
@@ -59,77 +43,51 @@ const BaseMetal = require('../model/basemetal.model');
 
 
 
-
-
-exports.getWatchlist = async (req, res) => {
-    const { email } = req.query; // Extract email from query parameters
-
-    try {
-        // Find the user by email
-        const user = await Registration.findOne({ email });
-        if (!user) {
-            return res.status(404).json({ message: 'User not found.' });
-        }
-
-        // Find all watchlist entries for this user
-        const watchlistEntries = await Watchlist.find({ email: user._id })
-            .populate('baseMetalId') // Populate base metal details
-            .exec();
-
-        // Extract only base metal details
-        const baseMetalList = watchlistEntries.map(entry => entry.baseMetalId);
-
-        res.status(200).json({
-            message: 'Watchlist retrieved successfully',
-            baseMetal: baseMetalList, // Return base metals directly as an array
-        });
-    } catch (error) {
-        console.error('Error retrieving watchlist:', error);
-        res.status(500).json({ message: 'Error retrieving watchlist.' });
-    }
-};
 
 
 
 // 2. Get a user's watchlist with baseMetal in array format
 exports.getWatchlist = async (req, res) => {
-    const { email } = req.query; // Extract email from query parameters
+    const { email } = req.query;
 
     try {
-        // Validate the email
         if (!email) {
             return res.status(400).json({ message: 'Email is required.' });
         }
 
-        // Find the user by email
         const user = await Registration.findOne({ email });
         if (!user) {
             return res.status(404).json({ message: 'User not found.' });
         }
 
-        // Find the user's watchlist entry by email
         const watchlistEntry = await Watchlist.findOne({ email })
-            .populate('baseMetalIds') // Populate details for each baseMetalId in the array
+            .populate('baseMetalIds') // Populate base metals
+            .populate('fxIds')        // Populate FX
+            .populate('lmeIds')       // Populate LME
+            .populate('mcxIds')       // Populate MCX
+            .populate('shfeIds')      // Populate SHFE
             .exec();
 
-        // Check if a watchlist entry exists
         if (!watchlistEntry) {
             return res.status(404).json({ message: 'No watchlist found for the user.' });
         }
 
-        // Extract populated base metal details
-        const baseMetalList = watchlistEntry.baseMetalIds;
-
+        // Format the response
         res.status(200).json({
             message: 'Watchlist retrieved successfully',
-            baseMetals: baseMetalList, // Return base metals directly as an array
+            watchlist: {
+                baseMetals: watchlistEntry.baseMetalIds,  // Detailed Base Metal information
+                fx: watchlistEntry.fxIds,                 // Detailed FX information
+                lme: watchlistEntry.lmeIds,               // Detailed LME information
+                mcx: watchlistEntry.mcxIds,               // Detailed MCX information
+                shfe: watchlistEntry.shfeIds              // Detailed SHFE information
+            }
         });
     } catch (error) {
         console.error('Error retrieving watchlist:', error);
         res.status(500).json({ message: 'Error retrieving watchlist.' });
     }
 };
-
 
 exports.deleteWatchListById = async (req, res) => {
     try {

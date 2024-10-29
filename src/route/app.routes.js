@@ -33,8 +33,7 @@ router.get("/get-reference-rate",refrencerateController.getCurrencyRates)
 router.post('/home-update',upload,homeupdateController.homeUpdate)
 router.get('/get-home-update',homeupdateController.getHomeUpdates)
 router.get('/get-self-news',newlistController.selfnewsList)
-router.post('/create-category',CategoryController.createCategory)
-router.post('/create-subcategory',CategoryController.createSubcategory)
+
 router.post('/create-item',itemController.createItem)
 router.get('/get-all-item',itemController.getAllItems)
 router.get('/getSpot-list',itemController.getSpotList)
@@ -47,7 +46,7 @@ router.get('/get-cash',lmeController.getSettlementCash)
 router.get('/get-settlement-cash',lmeController.getSettlementsAndCash)
  
 
-router.post('/add-watchlist',watchlistController.addWatchlistEntry)
+router.post('/add-watchlist',watchlistController.addToWatchlist)
 router.get('/get-watch-list',watchlistController.getWatchlist)
 router.delete('/delete-watchlist',watchlistController.deleteWatchListById)
 

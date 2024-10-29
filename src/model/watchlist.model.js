@@ -1,21 +1,48 @@
 // models/watchlist.model.js
-const mongoose = require('mongoose');
 
-const watchlistSchema = new mongoose.Schema({
-    email: {
-        type: String,
-        required: true,  // It's a good practice to enforce this
+const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
+
+const watchlistSchema = new Schema({
+    email: { 
+        type: String, 
+        required: true, 
+        unique: true 
     },
-    baseMetalIds: [{  // Change this to an array of ObjectIds
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'BaseMetal',  // Assuming BaseMetal is the correct model name
-        required: true,
-    }],
-    createdAt: {
-        type: Date,
-        default: Date.now,
-    },
+    baseMetalIds: [
+        { 
+            type: Schema.Types.ObjectId, 
+            ref: 'BaseMetal' 
+        }
+    ],
+    fxIds: [
+        { 
+            type: Schema.Types.ObjectId, 
+            ref: 'FX' 
+        }
+    ],
+    lmeIds: [
+        { 
+            type: Schema.Types.ObjectId, 
+            ref: 'LMESCRAP' 
+        }
+    ],
+    mcxIds: [
+        { 
+            type: Schema.Types.ObjectId, 
+            ref: 'MCX' 
+        }
+    ],
+    shfeIds: [
+        { 
+            type: Schema.Types.ObjectId, 
+            ref: 'Shfe' 
+        }
+    ],
+    createdAt: { 
+        type: Date, 
+        default: Date.now 
+    }
 });
 
-const Watchlist = mongoose.model('Watchlist', watchlistSchema);
-module.exports = Watchlist;
+module.exports = mongoose.model('Watchlist', watchlistSchema);
