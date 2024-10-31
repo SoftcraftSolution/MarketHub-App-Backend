@@ -89,23 +89,15 @@ exports.getWatchlist = async (req, res) => {
     }
 };
 
-exports.deleteWatchListById = async (req, res) => {
+exports.deleteWatchListItemById = async (req, res) => {
     try {
-        const { id, email } = req.query; // Get the baseMetalId and email from query parameters
+        const { id, email } = req.query; // Get the ID and email from query parameters
 
-        // Validate the baseMetalId
-        if (!id) {
+        // Validate required fields
+        if (!id || !email) {
             return res.status(400).json({
                 success: false,
-                message: "Base metal ID is required.",
-            });
-        }
-
-        // Validate the email
-        if (!email) {
-            return res.status(400).json({
-                success: false,
-                message: "Email is required.",
+                message: "ID and email are required.",
             });
         }
 
@@ -118,32 +110,39 @@ exports.deleteWatchListById = async (req, res) => {
             });
         }
 
-        // Find and update the watchlist, removing the specified baseMetalId from the baseMetalIds array
-        const updatedWatchlist = await Watchlist.findOneAndUpdate(
-            { email },
-            { $pull: { baseMetalIds: id } }, // Remove the specified baseMetalId from the array
-            { new: true } // Return the updated document
-        );
+        // List of fields to check
+        const fieldsToCheck = ['baseMetalIds', 'fxIds', 'lmeIds', 'mcxIds', 'shfeIds'];
+        let updatedWatchlist;
 
-        // Check if the baseMetalId was removed from the watchlist
-        if (!updatedWatchlist || updatedWatchlist.baseMetalIds.length === 0) {
-            return res.status(200).json({
+        // Iterate over each field and try to remove the ID from the array if it exists
+        for (const field of fieldsToCheck) {
+            updatedWatchlist = await Watchlist.findOneAndUpdate(
+                { email, [field]: id }, // Check if the ID is in the current array
+                { $pull: { [field]: id } }, // Remove the ID from the array
+                { new: true }
+            );
+            if (updatedWatchlist) break; // If ID is found and removed, stop further checks
+        }
+
+        // Check if the ID was removed from any watchlist array
+        if (!updatedWatchlist) {
+            return res.status(404).json({
                 success: false,
-                message: "Watchlist entry empty.",
+                message: "ID not found in any watchlist field.",
             });
         }
 
         // Respond with success message
         res.status(200).json({
             success: true,
-            message: "Base metal removed from watchlist successfully.",
+            message: "Item removed from watchlist successfully.",
             data: updatedWatchlist,
         });
     } catch (error) {
         // Handle any errors during deletion
         res.status(500).json({
             success: false,
-            message: "Error removing base metal from watchlist.",
+            message: "Error removing item from watchlist.",
             error: error.message,
         });
     }

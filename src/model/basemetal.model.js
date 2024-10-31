@@ -38,7 +38,10 @@ const subcategories = [
     "BRASS VILAITY",
     "BHATTHI",
     "CASTING PURJA",
+    "LAL PATTI/COPPER CABLE",
     "CHADRI",
+    "CCR 1.6 MM",
+  
     "CHALU",
     "IRANI (IZ)",
     "COPPER ARM",

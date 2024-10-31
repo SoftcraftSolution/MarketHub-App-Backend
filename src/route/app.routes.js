@@ -48,7 +48,7 @@ router.get('/get-settlement-cash',lmeController.getSettlementsAndCash)
 
 router.post('/add-watchlist',watchlistController.addToWatchlist)
 router.get('/get-watch-list',watchlistController.getWatchlist)
-router.delete('/delete-watchlist',watchlistController.deleteWatchListById)
+router.delete('/delete-watchlist',watchlistController.deleteWatchListItemById)
 
 //Extended days Api
 
