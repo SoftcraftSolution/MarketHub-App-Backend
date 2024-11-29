@@ -7,7 +7,7 @@ const mcx=require('../model/mcx.model')
 const shfe=require('../model/shfe.model')
  //
  exports.addToWatchlist = async (req, res) => {
-    const { email, baseMetalIds, fxIds, lmeIds, mcxIds, shfeIds,usIds } = req.body;
+    const { email, baseMetalIds, fxIds, lmeIds, mcxIds, shfeIds, usIds } = req.body;
 
     try {
         // Find or create the watchlist entry for the user by email
@@ -20,7 +20,7 @@ const shfe=require('../model/shfe.model')
                     lmeIds: { $each: lmeIds || [] }, 
                     mcxIds: { $each: mcxIds || [] }, 
                     shfeIds: { $each: shfeIds || [] },
-                    usIds:{ $each: shfeIds || [] }
+                    usIds: { $each: usIds || [] } // Corrected to use usIds
                 }
             },
             { new: true, upsert: true }
@@ -35,6 +35,7 @@ const shfe=require('../model/shfe.model')
         res.status(500).json({ message: 'Failed to update watchlist.' });
     }
 };
+
 
 
 
