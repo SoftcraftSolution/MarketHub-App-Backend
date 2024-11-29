@@ -39,6 +39,12 @@ const watchlistSchema = new Schema({
             ref: 'Shfe' 
         }
     ],
+    usIds: [
+        { 
+            type: Schema.Types.ObjectId, 
+            ref: 'MCX' 
+        }
+    ],
     createdAt: { 
         type: Date, 
         default: Date.now 

@@ -7,7 +7,7 @@ const mcx=require('../model/mcx.model')
 const shfe=require('../model/shfe.model')
  //
  exports.addToWatchlist = async (req, res) => {
-    const { email, baseMetalIds, fxIds, lmeIds, mcxIds, shfeIds } = req.body;
+    const { email, baseMetalIds, fxIds, lmeIds, mcxIds, shfeIds,usIds } = req.body;
 
     try {
         // Find or create the watchlist entry for the user by email
@@ -19,7 +19,8 @@ const shfe=require('../model/shfe.model')
                     fxIds: { $each: fxIds || [] }, 
                     lmeIds: { $each: lmeIds || [] }, 
                     mcxIds: { $each: mcxIds || [] }, 
-                    shfeIds: { $each: shfeIds || [] }
+                    shfeIds: { $each: shfeIds || [] },
+                    usIds:{ $each: shfeIds || [] }
                 }
             },
             { new: true, upsert: true }
@@ -61,26 +62,29 @@ exports.getWatchlist = async (req, res) => {
         }
 
         const watchlistEntry = await Watchlist.findOne({ email })
-            .populate('baseMetalIds') // Populate base metals
-            .populate('fxIds')        // Populate FX
-            .populate('lmeIds')       // Populate LME
-            .populate('mcxIds')       // Populate MCX
-            .populate('shfeIds')      // Populate SHFE
+            .populate('baseMetalIds')
+            .populate('fxIds')
+            .populate('lmeIds')
+            .populate('mcxIds')
+            .populate('shfeIds')
+            .populate('usIds')
             .exec();
+
+        console.log('Populated Watchlist Entry:', JSON.stringify(watchlistEntry, null, 2));
 
         if (!watchlistEntry) {
             return res.status(404).json({ message: 'No watchlist found for the user.' });
         }
 
-        // Format the response
         res.status(200).json({
             message: 'Watchlist retrieved successfully',
             watchlist: {
-                baseMetals: watchlistEntry.baseMetalIds,  // Detailed Base Metal information
-                fx: watchlistEntry.fxIds,                 // Detailed FX information
-                lme: watchlistEntry.lmeIds,               // Detailed LME information
-                mcx: watchlistEntry.mcxIds,               // Detailed MCX information
-                shfe: watchlistEntry.shfeIds              // Detailed SHFE information
+                baseMetals: watchlistEntry.baseMetalIds,
+                fx: watchlistEntry.fxIds,
+                lme: watchlistEntry.lmeIds,
+                mcx: watchlistEntry.mcxIds,
+                shfe: watchlistEntry.shfeIds,
+                us: watchlistEntry.usIds
             }
         });
     } catch (error) {
@@ -88,6 +92,7 @@ exports.getWatchlist = async (req, res) => {
         res.status(500).json({ message: 'Error retrieving watchlist.' });
     }
 };
+
 
 exports.deleteWatchListItemById = async (req, res) => {
     try {
@@ -111,7 +116,7 @@ exports.deleteWatchListItemById = async (req, res) => {
         }
 
         // List of fields to check
-        const fieldsToCheck = ['baseMetalIds', 'fxIds', 'lmeIds', 'mcxIds', 'shfeIds'];
+        const fieldsToCheck = ['baseMetalIds', 'fxIds', 'lmeIds', 'mcxIds', 'shfeIds','usIds'];
         let updatedWatchlist;
 
         // Iterate over each field and try to remove the ID from the array if it exists
