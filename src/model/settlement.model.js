@@ -1,28 +1,26 @@
 const mongoose = require('mongoose');
 
+// Define the schema
 const settlementSchema = new mongoose.Schema({
-  settlements: [
-    {
-      symbol: {
+    symbol: {
         type: String,
         required: true,
-      },
-      date: {
+    },
+    date: {
         type: String, // Use String for date in "DD.MM.YYYY" format
         required: true,
-      },
-      bid: {
-        type: Number,
-        required: true,
-      },
-      ask: {
-        type: Number,
-        required: true,
-      },
     },
-  ],
-});
+    bid: {
+        type: Number,
+        required: true,
+    },
+    ask: {
+        type: Number,
+        required: true,
+    },
+}, { collection: 'settlement3m' }); // Explicitly set the collection name
 
-const Settlement = mongoose.model('Settlement', settlementSchema);
+// Create the model
+const Settlement = mongoose.model('Settlement3M', settlementSchema);
 
 module.exports = Settlement;

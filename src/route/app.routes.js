@@ -41,8 +41,8 @@ router.get('/spot-list',itemController.spotlist)
 router.post('/update-spot-price',itemController.pricechange)
 router.post('/price-update',itemController.priceUpdate)
 router.get('/get-lme-warehouse',lmeController.getlmewarehouse)
-router.get('/get-settlement-list',lmeController.getSettlements)
-router.get('/get-cash',lmeController.getSettlementCash)
+//router.get('/get-settlement-list',lmeController.getSettlements)
+//router.get('/get-cash',lmeController.getSettlementCash)
 router.get('/get-settlement-cash',lmeController.getSettlementsAndCash)
  
 
