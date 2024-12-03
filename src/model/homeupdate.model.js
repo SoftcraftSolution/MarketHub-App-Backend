@@ -8,7 +8,7 @@ const homeUpdateSchema = new mongoose.Schema(
         },
         image: {
             type: String,
-            required: true, // Optional: add this if you want to make the field required
+           // Optional: add this if you want to make the field required
         }
     },
     {
