@@ -30,7 +30,7 @@ router.get("/user-approve",userController.userApproved)
 router.post("/check-user-approve",userController.checkUserApproved)
 router.delete('/delete-user',userController.deleteUserByEmail)
 router.get("/get-reference-rate",refrencerateController.getCurrencyRates)
-router.post('/home-update',homeupdateController.homeUpdate)
+router.post('/home-update',upload,homeupdateController.homeUpdate)
 router.get('/get-home-update',homeupdateController.getHomeUpdates)
 router.get('/get-self-news',newlistController.selfnewsList)
 

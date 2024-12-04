@@ -4,12 +4,15 @@ const homeUpdateSchema = new mongoose.Schema(
     {
         text: {
             type: String,
-            required: true, // Optional: add this if you want to make the field required
+    
         },
         image: {
             type: String,
            // Optional: add this if you want to make the field required
-        }
+        },
+        imageBase64:{
+            type:String,
+        },
     },
     {
         timestamps: true, // Correctly place timestamps here

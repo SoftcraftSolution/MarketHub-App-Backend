@@ -47,25 +47,7 @@ const upload = multer({
 ]);
 
 // Function to upload Base64 image to Cloudinary
-const uploadBase64ImageToCloudinary = async (base64Image) => {
-    const base64Prefix = 'data:image/png;base64,';
 
-    // Ensure the Base64 string includes the correct prefix
-    const formattedBase64Image = base64Image.startsWith(base64Prefix)
-        ? base64Image
-        : `${base64Prefix}${base64Image}`;
-
-    try {
-        const result = await cloudinary.uploader.upload(formattedBase64Image, {
-            folder: 'images',
-        });
-        console.log('Cloudinary upload successful:', result);
-        return result.secure_url;
-    } catch (error) {
-        console.error('Cloudinary upload error:', error);
-        throw new Error('Failed to upload Base64 image to Cloudinary.');
-    }
-};
 
 // Middleware for handling uploads
 const uploadMiddleware = (req, res, next) => {
@@ -82,10 +64,7 @@ const uploadMiddleware = (req, res, next) => {
             console.log('Request Files:', req.files);
 
             // If a Base64 image is included in the body, upload it to Cloudinary
-            if (req.body.imageBase64) {
-                req.body.imageUrl = await uploadBase64ImageToCloudinary(req.body.imageBase64);
-                console.log('Uploaded Image URL:', req.body.imageUrl);
-            }
+          
 
             next();
         } catch (error) {
