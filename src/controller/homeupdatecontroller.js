@@ -1,62 +1,42 @@
-const HomeUpdate = require('../model/homeupdate.model.js'); // Ensure this points to your model
-const cloudinary = require('cloudinary').v2; // Import Cloudinary for image uploads
 
-// Controller function to handle home updates
+
+const HomeUpdate = require('../model/homeupdate.model.js'); // Import your Mongoose model
+
+// Controller for handling home updates
 exports.homeUpdate = async (req, res) => {
     try {
-        const { text } = req.body;
+        const { text, imageBase64 } = req.body;
 
+        // Validate that text is provided
         if (!text) {
             return res.status(400).json({ message: 'Text is required.' });
         }
 
-        // Log the entire request to check if files are being sent
-        console.log('Request body:', req.body);
-        console.log('Request files:', req.files); // Log all files received
-
-        let image = null;
-
-        // Check if image is received in the request
-        if (req.files && req.files.image && req.files.image[0]) {
-            console.log('Uploading image...');
-
-            const imageFile = req.files.image[0]; // Access the image file buffer
-
-            // Upload image buffer to Cloudinary
-            image = await new Promise((resolve, reject) => {
-                const uploadStream = cloudinary.uploader.upload_stream(
-                    { folder: 'images', resource_type: 'image' },
-                    (error, result) => {
-                        if (error) {
-                            console.error('Error uploading to Cloudinary:', error);
-                            reject(error);
-                        }
-                        resolve(result.secure_url);
-                    }
-                );
-                uploadStream.end(imageFile.buffer); // Pass the buffer to the upload stream
-            });
-        }
-
-        console.log('Uploaded image URL:', image);
-
-        // Create new home update
+        // Directly save the Base64 image in the database
         const newHomeUpdate = new HomeUpdate({
             text,
-            image: image || null, // Image URL from Cloudinary
+            image: imageBase64 || null, // Save Base64 data or set to null if not provided
         });
 
+        // Save to the database
         await newHomeUpdate.save();
 
+        // Send a success response
         res.status(201).json({
             message: 'Home update successfully created',
             homeUpdate: newHomeUpdate,
         });
     } catch (error) {
         console.error('Error while adding home update:', error);
-        res.status(500).json({ message: 'An error occurred while uploading the home update.' });
+        res.status(500).json({ message: 'An error occurred while saving the home update.' });
     }
 };
+
+
+
+
+
+
 
 exports.getHomeUpdates = async (req, res) => {
     try {
