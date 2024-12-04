@@ -1,42 +1,52 @@
 
 
 
+
 const HomeUpdate = require('../model/homeupdate.model.js'); // Import the Mongoose model
 const cloudinary = require('cloudinary').v2; // Import Cloudinary
+const sharp = require('sharp'); // For image resizing
 
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+    timeout: 60000, // Increase timeout to 60 seconds
+});
 
+// Resize the image buffer before uploading
+const resizeImageBuffer = async (buffer) => {
+    return await sharp(buffer).resize(1024).toBuffer(); // Resize to 1024px width while maintaining aspect ratio
+};
 
 // Controller for handling home updates
 exports.homeUpdate = async (req, res) => {
     try {
-        const { text ,imageBase64} = req.body;
+        const { text , imageBase64} = req.body;
 
-       
+        if (!text) {
+            return res.status(400).json({ message: 'Text is required.' });
+        }
 
         let imageUrl = null;
 
-        // Check if files are provided and process the 'image' file
+        // If an image file is provided, upload it to Cloudinary
         if (req.files && req.files.image && req.files.image[0]) {
-            console.log('Uploading image to Cloudinary...');
+            console.log('Resizing and uploading image to Cloudinary...');
             try {
-                const fileBuffer = req.files.image[0].buffer; // Access file buffer
-                const result = await new Promise((resolve, reject) => {
+                const resizedBuffer = await resizeImageBuffer(req.files.image[0].buffer);
+                imageUrl = await new Promise((resolve, reject) => {
                     const uploadStream = cloudinary.uploader.upload_stream(
-                        { folder: 'images' }, // Specify folder in Cloudinary
+                        { folder: 'images' },
                         (error, result) => {
-                            if (error) {
-                                return reject(error);
-                            }
-                            resolve(result);
+                            if (error) return reject(error);
+                            resolve(result.secure_url);
                         }
                     );
-                    uploadStream.end(fileBuffer); // Stream the file buffer to Cloudinary
+                    uploadStream.end(resizedBuffer); // Stream the resized buffer to Cloudinary
                 });
-
-                imageUrl = result.secure_url; // Get the uploaded image's URL
                 console.log('Cloudinary upload successful:', imageUrl);
             } catch (error) {
-                console.error('Error uploading image to Cloudinary:', error);
+                console.error('Error uploading resized image to Cloudinary:', error);
                 return res.status(500).json({ message: 'Failed to upload image to Cloudinary.' });
             }
         } else {
@@ -63,8 +73,6 @@ exports.homeUpdate = async (req, res) => {
         res.status(500).json({ message: 'An error occurred while saving the home update.' });
     }
 };
-
-
 
 
 
