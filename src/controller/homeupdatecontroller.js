@@ -89,3 +89,28 @@ exports.getHomeUpdates = async (req, res) => {
         res.status(500).json({ message: 'Error fetching home updates.' });
     }
 };
+exports.deleteHomeUpdate = async (req, res) => {
+    try {
+        // Retrieve the ID from the query parameters
+        const { id } = req.query;
+
+        // Ensure the ID is provided
+        if (!id) {
+            return res.status(400).json({ message: 'Home ID is required in query parameters' });
+        }
+
+        // Find and delete the news article by ID
+        const news = await HomeUpdate.findByIdAndDelete(id);
+        
+        // Check if the news article was not found
+        if (!news) {
+            return res.status(404).json({ message: 'Home news not found' });
+        }
+        
+        // Send success response
+        res.status(200).json({ message: 'Home update deleted successfully' });
+    } catch (error) {
+        console.error('Error while deleting Self news:', error);
+        res.status(500).json({ message: 'An error occurred while deleting news.' });
+    }
+};
