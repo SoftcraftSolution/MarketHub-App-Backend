@@ -32,6 +32,7 @@ router.delete('/delete-user',userController.deleteUserByEmail)
 router.get("/get-reference-rate",refrencerateController.getCurrencyRates)
 router.post('/home-update',upload,homeupdateController.homeUpdate)
 router.get('/get-home-update',homeupdateController.getHomeUpdates)
+router.delete('/delete-home-update',homeupdateController.deleteHomeUpdate)
 router.get('/get-self-news',newlistController.selfnewsList)
 
 router.post('/create-item',itemController.createItem)
