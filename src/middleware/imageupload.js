@@ -13,8 +13,8 @@ cloudinary.config({
 // Log environment variables for debugging
 console.log('Cloudinary Config:', {
     CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME,
-    CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY ? '***HIDDEN***' : 'NOT SET',
-    CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET ? '***HIDDEN***' : 'NOT SET',
+    CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY ,
+    CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET
 });
 
 // Define storage for images
