@@ -10,11 +10,11 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// Log environment variables for debugging
-console.log('Cloudinary Config:', {
+// Log environment variables
+console.log('Environment Variables:', {
     CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME,
-    CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY ,
-    CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET
+    CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY,
+    CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET,
 });
 
 // Define storage for images
@@ -38,8 +38,10 @@ const pdfStorage = new CloudinaryStorage({
 });
 
 // Create multer instance for images and PDFs
+// Create multer instance for images and PDFs
 const upload = multer({
-    limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+    storage: multer.memoryStorage(), // Using memory storage to handle files before sending to Cloudinary
+    limits: { fileSize: 10 * 1024 * 1024 },  // 10MB limit
 }).fields([
     { name: 'image', maxCount: 1 },
     { name: 'pdf', maxCount: 1 },
@@ -53,12 +55,9 @@ const uploadMiddleware = (req, res, next) => {
             return res.status(400).json({ message: 'File upload failed', error: err.message });
         }
 
-        console.log('Upload Successful:', {
-            method: req.method,
-            body: req.body,
-            files: req.files,
-        });
-
+        console.log('Request Method:', req.method);
+        console.log('Request Body:', req.body);
+        console.log('Request Files:', req.files);
         next();
     });
 };
