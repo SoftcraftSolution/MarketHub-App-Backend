@@ -8,6 +8,8 @@ const nodemailer = require('nodemailer');
 require('dotenv').config();
 const ResetCode = require('../model/resetcode.models');
 const moment = require('moment-timezone');
+const sharp = require('sharp'); 
+
 
 // Generate a random OTP
 const generateOTP = () => {
@@ -52,48 +54,87 @@ const getCityAndStateByPinCode = async (pincode) => {
     }
 };
 
-
+const  resizeImageBuffer = async (buffer) => {
+  return await sharp(buffer).resize(1024).toBuffer(); // Resize to 1024px width while maintaining aspect ratio
+};
 // Create a new registration
 exports.createRegistration = async (req, res) => {
-    try {
-        // Extract necessary fields from request body
-        const { fullName, email, whatsappNumber, phoneNumber, pincode, pin, planName } = req.body;
+  try {
+      let imageUrl = null;
 
-        // Fetch city and state based on the pin code
-        const { city, state, country } = await getCityAndStateByPinCode(pincode);
+      // If a visiting card file is provided, upload it to Cloudinary
+      if (req.files && req.files.visitingCard && req.files.visitingCard[0]) {
+          console.log("Resizing and uploading visiting card to Cloudinary...");
 
-        // Calculate plan start and end dates
-    // Plan ends 7 days after the start
+          try {
+              const fileBuffer = req.files.visitingCard[0].buffer;
 
-        // Create a new registration document
-        const newRegistration = new Registration({
-            fullName: fullName,
-            email: email,
-            phoneNumber: phoneNumber,
-            whatsappNumber: whatsappNumber,
-            pincode: pincode,
-            pin: pin,
-            planName: planName,
-            city: city, // Save city from pin code API
-            state: state,
-            country: country, // Save state from pin code API
-            visitingCard: req.file ? req.file.path : null, // Handle visiting card upload if exists
-           // Save the plan end date
-        });
+              if (!fileBuffer || fileBuffer.length === 0) {
+                  throw new Error("Invalid visiting card file uploaded.");
+              }
 
-        // Save the registration document in the database
-        await newRegistration.save();
+              const resizedBuffer = await resizeImageBuffer(fileBuffer);
+              
+              imageUrl = await new Promise((resolve, reject) => {
+                  const uploadStream = cloudinary.uploader.upload_stream(
+                      { folder: "visitingCards" },
+                      (error, result) => {
+                          if (error) return reject(error);
+                          resolve(result.secure_url);
+                      }
+                  );
+                  uploadStream.end(resizedBuffer);
+              });
 
-        // Send a success response with the registration details
-        res.status(201).json({
-          
-            newRegistration,
-        });
-    } catch (error) {
-        console.error(error); // Log the error for debugging
-        res.status(400).json({ message: error.message });
-    }
+              console.log("Cloudinary upload successful:", imageUrl);
+          } catch (error) {
+              console.error("Error uploading resized visiting card to Cloudinary:", error);
+              return res.status(500).json({ message: "Failed to upload visiting card to Cloudinary." });
+          }
+      }
+
+      // Extract necessary fields from request body
+      const { fullName, email, whatsappNumber, phoneNumber, pincode, pin, planName } = req.body;
+
+      // Fetch city, state, and country based on the pin code
+      const { city, state, country } = await getCityAndStateByPinCode(pincode);
+
+      // Calculate plan start and end dates
+      const planStartDate = new Date();
+      const planEndDate = new Date();
+      planEndDate.setDate(planStartDate.getDate() + 7);
+
+      // Create a new registration document
+      const newRegistration = new Registration({
+          fullName,
+          email,
+          phoneNumber,
+          whatsappNumber,
+          pincode,
+          pin,
+          planName,
+          city,
+          state,
+          country,
+          visitingCard: imageUrl, // Save uploaded visiting card URL
+          planStartDate,
+          planEndDate,
+      });
+
+      // Save the registration document in the database
+      await newRegistration.save();
+
+      res.status(201).json({
+          message: "Registration successful",
+          registration: newRegistration,
+      });
+  } catch (error) {
+      console.error("Error in registration:", error);
+      res.status(400).json({ message: error.message });
+  }
 };
+
+
 
 
 

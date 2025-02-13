@@ -10,11 +10,11 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// Log environment variables
-console.log('Environment Variables:', {
+// Log environment variables for debugging
+console.log('Cloudinary Config:', {
     CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME,
-    CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY,
-    CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET,
+    CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY ? '***HIDDEN***' : 'NOT SET',
+    CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET ? '***HIDDEN***' : 'NOT SET',
 });
 
 // Define storage for images
@@ -39,38 +39,27 @@ const pdfStorage = new CloudinaryStorage({
 
 // Create multer instance for images and PDFs
 const upload = multer({
-    storage: multer.memoryStorage(), // Using memory storage to handle files before sending to Cloudinary
-    limits: { fileSize: 10 * 1024 * 1024 }, // Limit file size to 10 MB
+    limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
 }).fields([
     { name: 'image', maxCount: 1 },
     { name: 'pdf', maxCount: 1 },
+    { name: 'visitingCard', maxCount: 1 } // Add this field
 ]);
-
-// Function to upload Base64 image to Cloudinary
-
-
 // Middleware for handling uploads
 const uploadMiddleware = (req, res, next) => {
     upload(req, res, async (err) => {
         if (err) {
             console.error('Multer Error:', err);
-            return res.status(400).json({ message: 'Error uploading files' });
+            return res.status(400).json({ message: 'File upload failed', error: err.message });
         }
 
-        try {
-            // Log request details
-            console.log('Request Method:', req.method);
-            console.log('Request Body:', req.body);
-            console.log('Request Files:', req.files);
+        console.log('Upload Successful:', {
+            method: req.method,
+            body: req.body,
+            files: req.files,
+        });
 
-            // If a Base64 image is included in the body, upload it to Cloudinary
-          
-
-            next();
-        } catch (error) {
-            console.error('Error in uploadMiddleware:', error);
-            return res.status(500).json({ message: error.message });
-        }
+        next();
     });
 };
 
