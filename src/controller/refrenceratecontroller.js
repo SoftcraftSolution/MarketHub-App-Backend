@@ -54,3 +54,28 @@ exports.getCurrencyRates = async (req, res) => {
     });
   }
 };
+exports.updateSBITT=async (req, res) => {
+  try {
+    const { data } = req.body;
+
+    // Validate input
+    if (!data || !data["SBI TT"] || !data["BELOW 10 L"] || !data["ABOVE 10 L"]) {
+      return res.status(400).json({ error: "Invalid data format. Ensure all required fields are provided." });
+    }
+
+    // Update the document by pushing into "SBI TT"
+    const updatedDoc = await CurrencyRates.updateOne(
+      {}, // Find the first document (assuming there's only one)
+      { $push: { "SBI TT": data } } // Push the new entry to the "SBI TT" array
+    );
+
+    if (updatedDoc.modifiedCount === 0) {
+      return res.status(404).json({ error: "Document not found or no modifications made." });
+    }
+
+    res.json({ message: "Data added successfully to SBI TT", updatedDocument: updatedDoc });
+
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+}

@@ -31,6 +31,7 @@ router.get("/user-approve",userController.userApproved)
 router.post("/check-user-approve",userController.checkUserApproved)
 router.delete('/delete-user',userController.deleteUserByEmail)
 router.get("/get-reference-rate",refrencerateController.getCurrencyRates)
+router.post('/update-sbi-tt', refrencerateController.updateSBITT);
 router.post('/home-update',upload,homeupdateController.homeUpdate)
 router.get('/get-home-update',homeupdateController.getHomeUpdates)
 router.delete('/delete-home-update',homeupdateController.deleteHomeUpdate)
@@ -46,6 +47,7 @@ router.get('/get-lme-warehouse',lmeController.getlmewarehouse)
 //router.get('/get-settlement-list',lmeController.getSettlements)
 //router.get('/get-cash',lmeController.getSettlementCash)
 router.get('/get-settlement-cash',lmeController.getSettlementsAndCash)
+router.post('/update-lmewarehouse',lmeController.updateLmeWarehouseStock)
  
 
 router.post('/add-watchlist',watchlistController.addToWatchlist)

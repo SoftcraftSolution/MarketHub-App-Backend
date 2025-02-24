@@ -71,6 +71,60 @@ exports.getSettlementsAndCash = async (req, res) => {
 }
 
 
+exports.updateLmeWarehouseStock = async (req, res) => {
+    try {
+      const { symbol } = req.query;
+      const updateData = req.body;
+  
+      if (!symbol) {
+        return res.status(400).json({ error: "Symbol is required in query." });
+      }
+  
+      if (!updateData || Object.keys(updateData).length === 0) {
+        return res.status(400).json({ error: "No update data provided." });
+      }
+  
+      const warehouseData = await WarehouseStock.findOne({});
+      if (!warehouseData) {
+        return res.status(404).json({ error: "Warehouse data not found." });
+      }
+  
+      if (!Array.isArray(warehouseData.LME_Warehouse_Stock)) {
+        return res.status(400).json({ error: "LME_Warehouse_Stock field is missing or not an array." });
+      }
+  
+      const stockItem = warehouseData.LME_Warehouse_Stock.find(item => item.Symbol === symbol);
+  
+      if (!stockItem) {
+        return res.status(404).json({ error: `No stock item found for symbol: ${symbol}` });
+      }
+  
+      // Update fields
+      Object.keys(updateData).forEach(key => {
+        if (key in stockItem) {
+          stockItem[key] = updateData[key];
+        }
+      });
+  
+      await warehouseData.save();
+  
+      res.status(200).json({
+        message: "LME warehouse stock updated successfully.",
+        updatedStock: stockItem
+      });
+    } catch (error) {
+      console.error("Error updating stock:", error);
+      res.status(500).json({ error: "Internal server error.", details: error.message });
+    }
+  };
+
+  
+  
+  
+  
+  
+  
+
 
 
 

@@ -1,48 +1,54 @@
 const mongoose = require('mongoose');
 
-const warehouseStockSchema = new mongoose.Schema({
+// Define a sub-schema for individual stock entries
+const stockItemSchema = new mongoose.Schema({
   Symbol: {
     type: String,
     required: true,
-    unique: true
   },
   Open: {
     type: Number,
-    required: true
+    required: true,
   },
   In: {
     type: Number,
     required: true,
-   
   },
   Out: {
     type: Number,
     required: true,
-   
   },
   Close: {
     type: Number,
-    required: true
+    required: true,
   },
   Live: {
     type: Number,
-    required: true
+    
   },
   Cancel: {
     type: Number,
-    required: true
+  
   },
   Change: {
     type: Number,
-    required: true
+  
   },
   PercentChange: {
     type: Number,
-    required: true
-  }
+   
+  },
 });
 
-// Create a model from the schema
+// Main schema with LME_Warehouse_Stock as an array of stockItemSchema
+const warehouseStockSchema = new mongoose.Schema({
+  LME_Warehouse_Stock: {
+    type: [stockItemSchema],
+    required: true,
+  },
+});
+
+// Create the model
 const WarehouseStock = mongoose.model('lmewarehouse', warehouseStockSchema);
 
 module.exports = WarehouseStock;
