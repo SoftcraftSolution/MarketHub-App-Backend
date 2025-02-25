@@ -30,6 +30,7 @@ router.get("/rejected-user-list",userController.rejectedUserList)
 router.get("/user-approve",userController.userApproved)
 router.post("/check-user-approve",userController.checkUserApproved)
 router.delete('/delete-user',userController.deleteUserByEmail)
+router.delete('/delete-user-by-id',userController.deleteUserById)
 router.get("/get-reference-rate",refrencerateController.getCurrencyRates)
 router.post('/update-sbi-tt', refrencerateController.updateSBITT);
 router.post('/home-update',upload,homeupdateController.homeUpdate)

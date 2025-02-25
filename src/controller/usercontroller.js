@@ -1054,7 +1054,46 @@ exports.updatePin = async (req, res) => {
     }
   };
   
-  
+  // controllers/userController.js
+
+exports.deleteUserById = async (req, res) => {
+  try {
+    const { id } = req.query; // Get the user ID from query parameters
+
+    // Validate the ID
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: 'User ID is required.',
+      });
+    }
+
+    // Find and delete the user by ID
+    const deletedUser = await Registration.findByIdAndDelete(id);
+
+    // Check if the user exists
+    if (!deletedUser) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found.',
+      });
+    }
+
+    // Successful response
+    res.status(200).json({
+      success: true,
+      message: 'User deleted successfully.',
+      data: deletedUser,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error deleting user.',
+      error: error.message,
+    });
+  }
+};
+
   
   
   
