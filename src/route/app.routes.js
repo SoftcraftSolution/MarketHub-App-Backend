@@ -12,6 +12,7 @@ const itemController=require('../controller/itemcontroller')
 const lmeController=require('../controller/lmecontroller')
 const watchlistController=require('../controller/watchlistcontroller')
 const feedbackController=require('../controller/feedbackcontroller')
+const dashboardinsightController=require('../controller/dashboardinsightcontroller')
 
 
 router.post('/create-registration', upload,userController.createRegistration)
@@ -58,6 +59,14 @@ router.delete('/delete-watchlist',watchlistController.deleteWatchListItemById)
 
 router.post('/add-feedback',feedbackController.addFeedback)
 router.get('/get-all-feedback',feedbackController.getAllFeedbacks)  
+
+
+//router.get('/get-dashboard-insight',dashboardinsightController.getDashboardInsight)
+router.get('/recent-customer',dashboardinsightController.getRecentCustomers)
+router.get('/total-revenue',dashboardinsightController.getDailyPlanStats )
+router.get('/getMostBoughtPlans',dashboardinsightController.getMostBoughtPlans)
+router.get('/totalactiveusers',dashboardinsightController.getTodayActiveUsers)
+
 //Extended days Api
 
 //vercel update
