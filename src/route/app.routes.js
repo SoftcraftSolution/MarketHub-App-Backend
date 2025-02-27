@@ -11,6 +11,7 @@ const CategoryController=require('../controller/categorycontroller')
 const itemController=require('../controller/itemcontroller')
 const lmeController=require('../controller/lmecontroller')
 const watchlistController=require('../controller/watchlistcontroller')
+const feedbackController=require('../controller/feedbackcontroller')
 
 
 router.post('/create-registration', upload,userController.createRegistration)
@@ -55,6 +56,8 @@ router.post('/add-watchlist',watchlistController.addToWatchlist)
 router.get('/get-watch-list',watchlistController.getWatchlist)
 router.delete('/delete-watchlist',watchlistController.deleteWatchListItemById)
 
+router.post('/add-feedback',feedbackController.addFeedback)
+router.get('/get-all-feedback',feedbackController.getAllFeedbacks)  
 //Extended days Api
 
 //vercel update
